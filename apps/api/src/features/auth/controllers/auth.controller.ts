@@ -23,8 +23,15 @@ import { signUpSchema } from '@/features/auth/schemas/sign-up.schema';
 import { loginSchema } from '@/features/auth/schemas/login.schema';
 import { AuthGuard } from '@/core/guards/auth.guard';
 import { UserSessionService } from '@/core/services/user-session.service';
-import { type UserSession } from '@/features/auth/interfaces';
-import { AccessTokenPayloadEntity } from '@/features/auth/entities';
+import {
+  type AccessTokenPayload,
+  type UserSession,
+} from '@/features/auth/interfaces';
+import { UserSessionGuard } from '@/core/guards/user-session.guard';
+import {
+  AUTH_TOKEN_COOKIE_NAME,
+  SESSION_ID_COOKIE_NAME,
+} from '@/constants/cookies.constant';
 
 @Controller('auth')
 export class AuthController {
@@ -56,20 +63,28 @@ export class AuthController {
     const { accessToken, user } = await this.authService.login(body);
 
     const { id: userId, email, createdAt } = user;
-    const userAgent = request.headers['user-agent'];
-    const ipAddress = request.ip;
-    const userSession = {
-      userId,
-      email,
-      createdAt,
-      lastActivity: new Date(),
-      ipAddress: ipAddress ?? '',
-      userAgent: userAgent ?? '',
-    };
+    const userAgent = request.headers['user-agent'] ?? '';
+    const ipAddress = request.ip ?? '';
 
-    const sessionId = await this.userSessionService.createSession(userSession);
+    const existingSessionId =
+      await this.userSessionService.findSessionByUserAndDevice(
+        userAgent,
+        ipAddress,
+      );
+    if (existingSessionId) {
+      return response.json({
+        user: { id: userId, email, createdAt },
+        message: 'Already logged in from this device',
+      });
+    }
+
+    const sessionId = await this.userSessionService.createSession({
+      ipAddress,
+      userAgent,
+      user,
+    });
     const userSessionTtl = this.configService.get<number>('userSession.ttl');
-    response.cookie('session_id', sessionId, {
+    response.cookie(SESSION_ID_COOKIE_NAME, sessionId, {
       httpOnly: true,
       secure: this.isProduction,
       maxAge: userSessionTtl * 1000,
@@ -78,14 +93,13 @@ export class AuthController {
     const accessTokenExpiresIn = this.configService.get<number>(
       'accessToken.expiresIn',
     );
-    response.cookie('access_token', accessToken, {
+    response.cookie(AUTH_TOKEN_COOKIE_NAME, accessToken, {
       httpOnly: true,
       secure: this.isProduction,
       maxAge: accessTokenExpiresIn * 1000,
     });
 
     return response.json({
-      accessToken,
       user: {
         id: userId,
         email,
@@ -98,20 +112,20 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('/refresh')
   refreshAccessToken(@Req() request: Request) {
-    const payload = request['user'];
+    const payload = request['user'] as AccessTokenPayload;
 
     return this.authService.refreshAccessToken(payload);
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, UserSessionGuard)
   @Post('/logout')
   async logout(
     @Req()
     request: Request & {
       sessionId: string;
       session: UserSession;
-      user: AccessTokenPayloadEntity;
+      user: AccessTokenPayload;
     },
     @Res() response: Response,
   ) {
@@ -124,6 +138,6 @@ export class AuthController {
     response.clearCookie('session_id');
     response.clearCookie('access_token');
 
-    return { message: 'User logged out successfully' };
+    return response.json({ message: 'User logged out successfully' });
   }
 }

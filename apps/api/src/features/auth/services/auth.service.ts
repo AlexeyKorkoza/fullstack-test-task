@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 
 import {
   type LoginDto,
-  type LoginResponseDto,
   type RefreshAccessTokenResponseDto,
   type SignUpDto,
 } from '@/features/auth/dtos';
@@ -10,7 +9,10 @@ import { AuthRepository } from '@/features/auth/repositories/auth.repository';
 import { TokenService } from '@/core/services/token.service';
 import { PasswordService } from '@/features/auth/services/password.service';
 import { RefreshTokenService } from '@/features/auth/services/refresh-token.service';
-import { AccessTokenPayloadEntity } from '@/features/auth/entities';
+import {
+  type AuthLoginResponse,
+  type AccessTokenPayload,
+} from '@/features/auth/interfaces';
 
 @Injectable()
 export class AuthService {
@@ -46,7 +48,7 @@ export class AuthService {
     }
   }
 
-  async login(body: LoginDto): Promise<LoginResponseDto> {
+  async login(body: LoginDto): Promise<AuthLoginResponse> {
     try {
       const { email, password } = body;
 
@@ -77,7 +79,7 @@ export class AuthService {
         await this.refreshTokenService.createRefreshToken(userId);
 
       const accessToken =
-        await this.tokenService.generateAccessToken<AccessTokenPayloadEntity>({
+        await this.tokenService.generateAccessToken<AccessTokenPayload>({
           userId,
           email: user.email,
           refreshTokenId,
@@ -104,12 +106,12 @@ export class AuthService {
   }
 
   async refreshAccessToken(
-    payload: AccessTokenPayloadEntity,
+    payload: AccessTokenPayload,
   ): Promise<RefreshAccessTokenResponseDto> {
     try {
       const { userId, email, refreshTokenId } = payload;
       const accessToken =
-        await this.tokenService.generateAccessToken<AccessTokenPayloadEntity>({
+        await this.tokenService.generateAccessToken<AccessTokenPayload>({
           userId,
           email,
           refreshTokenId,

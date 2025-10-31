@@ -1,8 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Redis } from 'ioredis';
+import crypto from 'crypto';
 
 import { type UserSession } from '@/features/auth/interfaces';
+import { UserEntity } from '@/features/auth/entities';
 
 @Injectable()
 export class UserSessionService {
@@ -17,11 +19,28 @@ export class UserSessionService {
     this.sessionPrefix = this.configService.get<string>('userSession.prefix');
   }
 
-  async createSession(userSession: UserSession): Promise<string> {
-    const sessionId = this.generateSessionId();
+  async createSession({
+    user,
+    ipAddress,
+    userAgent,
+  }: {
+    user: UserEntity;
+    ipAddress: string;
+    userAgent: string;
+  }): Promise<string> {
+    const { id: userId, email, createdAt } = user;
+    const sessionId = this.generateDeviceHash(userAgent, ipAddress);
+    const userSession = {
+      userId,
+      email,
+      createdAt,
+      lastActivity: new Date(),
+      ipAddress: ipAddress ?? '',
+      userAgent: userAgent ?? '',
+    };
 
     await this.redis.setex(
-      `${this.sessionPrefix}${sessionId}`,
+      `${this.sessionPrefix}:${sessionId}`,
       this.sessionTtl,
       JSON.stringify(userSession),
     );
@@ -68,7 +87,19 @@ export class UserSessionService {
     }
   }
 
-  private generateSessionId(): string {
-    return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  findSessionByUserAndDevice(
+    userAgent: string,
+    ipAddress: string,
+  ): Promise<string | null> {
+    const sessionKey = `${this.sessionPrefix}:${this.generateDeviceHash(userAgent, ipAddress)}`;
+
+    return this.redis.get(sessionKey);
+  }
+
+  private generateDeviceHash(userAgent: string, ipAddress: string): string {
+    return crypto
+      .createHash('sha256')
+      .update(`${this.sessionPrefix}:${userAgent}:${ipAddress}`)
+      .digest('hex');
   }
 }

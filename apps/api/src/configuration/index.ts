@@ -26,7 +26,7 @@ export default () => ({
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
   },
   userSession: {
-    prefix: process.env.USER_SESSION_PREFIX || 'session:',
+    prefix: process.env.USER_SESSION_PREFIX || 'session',
     ttl: parseInt(process.env.USER_SESSION_TTL_IN_SECONDS || '86400', 10),
   },
 });

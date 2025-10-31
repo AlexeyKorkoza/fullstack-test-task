@@ -4,10 +4,10 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { type Request } from 'express';
 
 import { TokenService } from '@/core/services/token.service';
-import { type AccessTokenPayloadEntity } from '@/features/auth/entities';
+import { AUTH_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
+import { type AccessTokenPayload } from '@/features/auth/interfaces';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -15,16 +15,14 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const token = request.cookies[AUTH_TOKEN_COOKIE_NAME] as string;
     if (!token) {
       throw new UnauthorizedException();
     }
 
     try {
       const payload =
-        await this.tokenService.decodeAccessToken<AccessTokenPayloadEntity>(
-          token,
-        );
+        await this.tokenService.decodeAccessToken<AccessTokenPayload>(token);
 
       request['user'] = payload;
     } catch {
@@ -32,11 +30,5 @@ export class AuthGuard implements CanActivate {
     }
 
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-
-    return type === 'Bearer' ? token : undefined;
   }
 }

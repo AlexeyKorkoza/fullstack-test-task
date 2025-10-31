@@ -1,4 +1,4 @@
-export interface AccessTokenPayloadEntity {
+export interface AccessTokenPayload {
   userId: number;
   email: string;
   refreshTokenId: number;
