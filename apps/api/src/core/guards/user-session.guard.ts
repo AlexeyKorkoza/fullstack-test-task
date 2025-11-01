@@ -1,7 +1,7 @@
 import {
   Injectable,
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserSessionService } from '@/core/services/user-session.service';

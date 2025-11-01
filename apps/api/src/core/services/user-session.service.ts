@@ -4,7 +4,7 @@ import { type Redis } from 'ioredis';
 import crypto from 'crypto';
 
 import { type UserSession } from '@/features/auth/interfaces';
-import { UserEntity } from '@/features/auth/entities';
+import { type UserEntity } from '@/features/auth/entities';
 
 @Injectable()
 export class UserSessionService {
@@ -55,7 +55,7 @@ export class UserSessionService {
   }
 
   async getSession(sessionId: string): Promise<UserSession | null> {
-    const key = `${this.sessionPrefix}${sessionId}`;
+    const key = `${this.sessionPrefix}:${sessionId}`;
     const sessionData = await this.redis.get(key);
 
     if (!sessionData) {
@@ -82,7 +82,7 @@ export class UserSessionService {
   async destroySession(sessionId: string): Promise<void> {
     const session = await this.getSession(sessionId);
     if (session) {
-      await this.redis.del(`${this.sessionPrefix}${sessionId}`);
+      await this.redis.del(`${this.sessionPrefix}:${sessionId}`);
       await this.redis.srem(`user_sessions:${session.userId}`, sessionId);
     }
   }

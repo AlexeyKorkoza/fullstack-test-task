@@ -2,24 +2,22 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
-import { AppService } from './app.service';
-import { AppController } from './app.controller';
 import { AuthModule } from './features/auth/auth.module';
 import configuration from '@/configuration';
-import { CacheModule } from '@/core/cache/cache.module';
 import { UsersModule } from '@/features/users/users.module';
+import { CoreModule } from '@/core/core.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    CacheModule,
+    CoreModule,
     JwtModule.register({}),
     AuthModule,
     UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

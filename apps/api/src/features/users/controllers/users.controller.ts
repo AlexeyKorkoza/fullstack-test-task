@@ -13,11 +13,11 @@ import {
   type UserListResponseDto,
 } from '@/features/users/dtos';
 
-@Controller('users')
+@Controller('')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/')
+  @Get('/users')
   @UseGuards(AuthGuard)
   async findAllUsers(): Promise<UserListResponseDto> {
     const users = await this.usersService.findAllUsers();
@@ -25,7 +25,7 @@ export class UsersController {
     return { users };
   }
 
-  @Get('me')
+  @Get('/me')
   @UseGuards(AuthGuard, UserSessionGuard)
   async findMe(
     @Req()
