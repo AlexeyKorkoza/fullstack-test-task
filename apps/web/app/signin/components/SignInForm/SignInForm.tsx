@@ -1,30 +1,30 @@
 'use client';
-
-import { useRouter } from 'next/navigation';
 import { Button, Form, notification } from 'antd';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-import { type SignUpDto } from '@/signup/models';
-import { useSignUp } from '@/signup/hooks/useSignUp';
 import { ROUTERS } from '@/(constants)/router';
 import { AuthForm } from '@/(auth)/components/AuthForm';
-import './SignUpForm.scss';
+import { useSignIn } from '@/signin/hooks/useSignIn';
+import { type SignInDto } from '@/signin/models';
+import './SignInForm.scss';
 
-export const SignUpForm = () => {
+export const SignInForm = () => {
   const [api, contextHolder] = notification.useNotification();
   const router = useRouter();
-  const { mutateAsync: submitSignupForm, isPending } = useSignUp();
+  const { mutateAsync: submitSignInForm, isPending } = useSignIn();
 
-  const onSubmit = async (values: SignUpDto) => {
+  const onSubmit = async (values: SignInDto) => {
     try {
-      const { message } = await submitSignupForm(values);
+      const { message } = await submitSignInForm(values);
       api.open({
         message,
         duration: 0,
         type: 'success',
       });
-      router.push(ROUTERS.signin);
+      router.push(ROUTERS.profile);
     } catch (error: unknown) {
+      console.error(error);
       // @ts-ignore
       const body = await error?.response?.json();
       const { message } = body;
@@ -44,10 +44,12 @@ export const SignUpForm = () => {
         footer={
           <Form.Item label={null}>
             <Button type="primary" htmlType="submit" disabled={isPending}>
-              Sign Up
+              Sign In
             </Button>
-            <div className="sign-up-form_account-link">
-              <Link href={ROUTERS.signin}>Have an account? Sign In</Link>
+            <div className="sign-in-form_account-link">
+              <Link href={ROUTERS.signup}>
+                Hasn&apos;t an account yet? Sign Up
+              </Link>
             </div>
           </Form.Item>
         }

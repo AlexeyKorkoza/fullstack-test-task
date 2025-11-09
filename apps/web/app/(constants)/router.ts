@@ -1,5 +1,5 @@
 export const ROUTERS = {
-  login: '/login',
+  signin: '/signin',
   signup: '/signup',
   users: '/users',
   profile: '/profile',

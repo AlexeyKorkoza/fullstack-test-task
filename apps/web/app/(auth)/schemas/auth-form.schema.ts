@@ -4,9 +4,9 @@ import {
   EMAIL_INVALID_ERROR,
   MIN_PASSWORD_LENGTH,
   PASSWORD_INVALID_ERROR,
-} from '@/signup/constants/validation.constant';
+} from '@/(auth)/constants/validation.constant';
 
-export const signUpFormSchema = z
+export const authFormSchema = z
   .object({
     email: z.email({
       error: EMAIL_INVALID_ERROR,
