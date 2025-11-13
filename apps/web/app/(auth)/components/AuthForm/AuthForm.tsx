@@ -5,7 +5,7 @@ import { Form, Input } from 'antd';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import type { SignUpDto } from '@/signup/models';
+import type { SignUpBodyDto } from '@/signup/models';
 import { FormErrorMessage } from '@/shared/FormErrorMessage';
 import { type AuthFormModel } from '@/(auth)/models';
 import { authFormSchema } from '@/(auth)/schemas/auth-form.schema';
@@ -20,8 +20,8 @@ type Props = {
 export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
   const formProps = useForm<AuthFormModel>({
     defaultValues: {
-      email: '',
-      password: '',
+      email: 'email1@test.com',
+      password: '12345678',
     },
     resolver: zodResolver(authFormSchema),
   });
@@ -45,7 +45,7 @@ export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
           name="email"
           control={control}
           render={({ field }) => (
-            <Form.Item<SignUpDto> label="Email">
+            <Form.Item<SignUpBodyDto> label="Email">
               <Input {...field} disabled={isPending} />
               {errors.email?.message && (
                 <FormErrorMessage message={errors.email.message} />
@@ -58,7 +58,7 @@ export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
           name="password"
           control={control}
           render={({ field }) => (
-            <Form.Item<SignUpDto> label="Password">
+            <Form.Item<SignUpBodyDto> label="Password">
               <Input.Password {...field} disabled={isPending} />
               {errors.password?.message && (
                 <FormErrorMessage message={errors.password.message} />

@@ -7,6 +7,15 @@ import type { RefreshTokenEntity } from '@/features/auth/entities';
 export class RefreshTokenRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
+  findAllActiveRefreshTokens(userId: number): Promise<RefreshTokenEntity[]> {
+    return this.prismaService.refreshToken.findMany({
+      where: {
+        userId,
+        is_revoked: false,
+      },
+    });
+  }
+
   createRefreshToken(
     data: Pick<RefreshTokenEntity, 'userId' | 'token_hash' | 'expiresAt'>,
   ): Promise<RefreshTokenEntity> {
@@ -15,10 +24,10 @@ export class RefreshTokenRepository {
     });
   }
 
-  revokeRefreshToken(id: number): Promise<RefreshTokenEntity> {
+  revokeRefreshToken(tokenHash: string): Promise<RefreshTokenEntity> {
     return this.prismaService.refreshToken.update({
       where: {
-        id,
+        token_hash: tokenHash,
       },
       data: {
         is_revoked: true,

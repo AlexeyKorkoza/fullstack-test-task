@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   type LoginDto,
@@ -13,6 +19,7 @@ import {
   type AuthLoginResponse,
   type AccessTokenPayload,
 } from '@/features/auth/interfaces';
+import { UserSessionService } from '@/core/services/user-session.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +28,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly userSessionService: UserSessionService,
   ) {}
 
   async signUp(body: SignUpDto) {
@@ -75,14 +83,13 @@ export class AuthService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-      const { id: refreshTokenId } =
-        await this.refreshTokenService.createRefreshToken(userId);
+
+      await this.refreshTokenService.createRefreshToken(userId);
 
       const accessToken =
         await this.tokenService.generateAccessToken<AccessTokenPayload>({
           userId,
           email: user.email,
-          refreshTokenId,
         });
       if (!accessToken) {
         throw new HttpException(
@@ -93,6 +100,7 @@ export class AuthService {
 
       return {
         accessToken,
+        refreshToken,
         user,
       };
     } catch (error) {
@@ -105,16 +113,28 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(
-    payload: AccessTokenPayload,
-  ): Promise<RefreshAccessTokenResponseDto> {
+  async refreshAccessToken({
+    refreshToken,
+    sessionId,
+  }: {
+    refreshToken: string;
+    sessionId: string;
+  }): Promise<RefreshAccessTokenResponseDto> {
     try {
-      const { userId, email, refreshTokenId } = payload;
+      const userSession = await this.userSessionService.getSession(sessionId);
+      const { userId, email } = userSession;
+
+      const foundRefreshToken = await this.refreshTokenService.findRefreshToken(
+        { refreshToken, userId },
+      );
+      if (!foundRefreshToken) {
+        throw new NotFoundException('Refresh token not found');
+      }
+
       const accessToken =
         await this.tokenService.generateAccessToken<AccessTokenPayload>({
           userId,
           email,
-          refreshTokenId,
         });
 
       return { accessToken };
@@ -128,9 +148,9 @@ export class AuthService {
     }
   }
 
-  async logoutUser(refreshTokenId: number): Promise<void> {
+  async logoutUser(refreshToken: string): Promise<void> {
     try {
-      await this.refreshTokenService.revokeRefreshToken(refreshTokenId);
+      await this.refreshTokenService.revokeRefreshToken(refreshToken);
     } catch (error) {
       Logger.error('Something went wrong when logging out user', error);
 

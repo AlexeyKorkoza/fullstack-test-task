@@ -19,11 +19,13 @@
     "@tanstack/react-query": "^5.90.6",
     "@tanstack/react-table": "^8.21.3",
     "antd": "^5.28.0",
+    "cookie": "^1.0.2",
     "ky": "^1.13.0",
     "next": "^15.5.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.66.0",
+    "set-cookie-parser": "^2.7.2",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -33,6 +35,7 @@
     "@types/node": "^22.15.3",
     "@types/react": "19.1.0",
     "@types/react-dom": "19.1.1",
+    "@types/set-cookie-parser": "^2.4.10",
     "eslint": "^9.31.0",
     "sass": "^1.93.3",
     "typescript": "5.8.2"

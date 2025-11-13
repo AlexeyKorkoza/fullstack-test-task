@@ -72,7 +72,7 @@ export class UserSessionService {
     if (session) {
       session.lastActivity = new Date();
       await this.redis.setex(
-        `${this.sessionPrefix}${sessionId}`,
+        `${this.sessionPrefix}:${sessionId}`,
         this.sessionTtl,
         JSON.stringify(session),
       );

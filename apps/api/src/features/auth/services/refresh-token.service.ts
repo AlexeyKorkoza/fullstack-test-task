@@ -14,6 +14,40 @@ export class RefreshTokenService {
     private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
+  private hashRefreshToken(refreshToken: string): Promise<string> {
+    const refreshTokenSaltRounds = this.configService.get<number>(
+      'refreshToken.saltRounds',
+    );
+
+    return bcrypt.hash(refreshToken, refreshTokenSaltRounds);
+  }
+
+  async findRefreshToken({
+    refreshToken,
+    userId,
+  }: {
+    refreshToken: string;
+    userId: number;
+  }): Promise<RefreshTokenEntity> {
+    const activeRefreshTokens =
+      await this.refreshTokenRepository.findAllActiveRefreshTokens(userId);
+    let validStoredToken: RefreshTokenEntity | null = null;
+
+    for (const activeRefreshToken of activeRefreshTokens) {
+      const isMatch = await bcrypt.compare(
+        refreshToken,
+        activeRefreshToken.token_hash,
+      );
+
+      if (isMatch) {
+        validStoredToken = activeRefreshToken;
+        break;
+      }
+    }
+
+    return validStoredToken;
+  }
+
   async createRefreshToken(userId: number): Promise<RefreshTokenEntity> {
     const refresh_token = await this.tokenService.generateRefreshToken({
       id: userId,
@@ -22,10 +56,7 @@ export class RefreshTokenService {
       'refreshToken.expiresIn',
     );
 
-    const saltRounds = this.configService.get<number>(
-      'refreshToken.saltRounds',
-    );
-    const token_hash = await bcrypt.hash(refresh_token, saltRounds);
+    const token_hash = await this.hashRefreshToken(refresh_token);
     const expiresAt = new Date(Date.now() + refreshTokenExpiresIn);
     const body: Pick<
       RefreshTokenEntity,
@@ -39,7 +70,9 @@ export class RefreshTokenService {
     return this.refreshTokenRepository.createRefreshToken(body);
   }
 
-  async revokeRefreshToken(id: number): Promise<RefreshTokenEntity> {
-    return this.refreshTokenRepository.revokeRefreshToken(id);
+  async revokeRefreshToken(refreshToken: string): Promise<RefreshTokenEntity> {
+    const hashedRefreshToken = await this.hashRefreshToken(refreshToken);
+
+    return this.refreshTokenRepository.revokeRefreshToken(hashedRefreshToken);
   }
 }

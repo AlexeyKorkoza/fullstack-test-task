@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { type Response, type Request } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -29,7 +30,8 @@ import {
 } from '@/features/auth/interfaces';
 import { UserSessionGuard } from '@/core/guards/user-session.guard';
 import {
-  AUTH_TOKEN_COOKIE_NAME,
+  ACCESS_TOKEN_COOKIE_NAME,
+  REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
 } from '@/constants/cookies.constant';
 
@@ -58,9 +60,10 @@ export class AuthController {
   async login(
     @Body() body: LoginDto,
     @Req() request: Request,
-    @Res() response: Response,
-  ): Promise<Response<LoginResponseDto>> {
-    const { accessToken, user } = await this.authService.login(body);
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<LoginResponseDto> {
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(body);
 
     const { id: userId, email, createdAt } = user;
     const userAgent = request.headers['user-agent'] ?? '';
@@ -71,11 +74,12 @@ export class AuthController {
         userAgent,
         ipAddress,
       );
+
     if (existingSessionId) {
-      return response.json({
+      return {
         user: { id: userId, email, createdAt },
         message: 'Already logged in from this device',
-      });
+      };
     }
 
     const sessionId = await this.userSessionService.createSession({
@@ -83,38 +87,80 @@ export class AuthController {
       userAgent,
       user,
     });
-    const userSessionTtl = this.configService.get<number>('userSession.ttl');
-    response.cookie(SESSION_ID_COOKIE_NAME, sessionId, {
-      httpOnly: true,
-      secure: this.isProduction,
-      maxAge: userSessionTtl * 1000,
-    });
 
+    const userSessionTtl = this.configService.get<number>('userSession.ttl');
     const accessTokenExpiresIn = this.configService.get<number>(
       'accessToken.expiresIn',
     );
-    response.cookie(AUTH_TOKEN_COOKIE_NAME, accessToken, {
+    const refreshTokenExpiresIn = this.configService.get<number>(
+      'refreshToken.expiresIn',
+    );
+
+    const commonCookieOptions = {
       httpOnly: true,
       secure: this.isProduction,
+      domain: this.isProduction ? undefined : 'localhost',
+      path: '/',
+    };
+
+    response.cookie(SESSION_ID_COOKIE_NAME, sessionId, {
+      ...commonCookieOptions,
+      sameSite: this.isProduction ? 'strict' : 'lax',
+      maxAge: userSessionTtl * 1000,
+    });
+
+    response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+      ...commonCookieOptions,
+      sameSite: this.isProduction ? 'strict' : 'lax',
       maxAge: accessTokenExpiresIn * 1000,
     });
 
-    return response.json({
-      user: {
-        id: userId,
-        email,
-        createdAt,
-      },
+    response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+      ...commonCookieOptions,
+      sameSite: this.isProduction ? 'strict' : 'lax',
+      maxAge: refreshTokenExpiresIn * 1000,
     });
+
+    return {
+      message: 'User logged in successfully',
+      user: { id: userId, email, createdAt },
+    };
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
+  @UseGuards(UserSessionGuard)
   @Post('/refresh')
-  refreshAccessToken(@Req() request: Request) {
-    const payload = request['user'] as AccessTokenPayload;
+  async refreshAccessToken(
+    @Req()
+    request: Request & {
+      refreshToken: string;
+      sessionId: string;
+    },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME];
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
 
-    return this.authService.refreshAccessToken(payload);
+    const sessionId = request.sessionId;
+    const { accessToken } = await this.authService.refreshAccessToken({
+      refreshToken,
+      sessionId,
+    });
+    const accessTokenExpiresIn = this.configService.get<number>(
+      'accessToken.expiresIn',
+    );
+    response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+      httpOnly: true,
+      secure: this.isProduction,
+      maxAge: accessTokenExpiresIn,
+      sameSite: 'none',
+    });
+
+    return {
+      message: 'Token is refreshed successfully',
+    };
   }
 
   @HttpCode(HttpStatus.OK)
@@ -123,21 +169,30 @@ export class AuthController {
   async logout(
     @Req()
     request: Request & {
+      refreshToken: string;
       sessionId: string;
       session: UserSession;
       user: AccessTokenPayload;
     },
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const sessionId = request.sessionId;
-    const { refreshTokenId } = request.user;
+    if (!sessionId) {
+      throw new UnauthorizedException('Session not found');
+    }
+
+    const refreshToken = request.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
 
     await this.userSessionService.destroySession(sessionId);
-    await this.authService.logoutUser(refreshTokenId);
+    await this.authService.logoutUser(refreshToken);
 
-    response.clearCookie('session_id');
-    response.clearCookie('access_token');
+    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
+    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
+    response.clearCookie(SESSION_ID_COOKIE_NAME);
 
-    return response.json({ message: 'User logged out successfully' });
+    return { message: 'User logged out successfully' };
   }
 }

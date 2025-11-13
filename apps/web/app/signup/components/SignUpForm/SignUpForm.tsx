@@ -1,39 +1,50 @@
 'use client';
-
 import { useRouter } from 'next/navigation';
 import { Button, Form, notification } from 'antd';
+import { useTransition } from 'react';
 import Link from 'next/link';
 
-import { type SignUpDto } from '@/signup/models';
-import { useSignUp } from '@/signup/hooks/useSignUp';
+import { type SignUpBodyDto } from '@/signup/models';
 import { ROUTERS } from '@/(constants)/router';
 import { AuthForm } from '@/(auth)/components/AuthForm';
 import './SignUpForm.scss';
+import { signUpUser } from '@/(auth)/api';
+import ky, { KyResponse } from 'ky';
 
 export const SignUpForm = () => {
   const [api, contextHolder] = notification.useNotification();
   const router = useRouter();
-  const { mutateAsync: submitSignupForm, isPending } = useSignUp();
+  const [isPending, startTransaction] = useTransition();
+  // const { mutateAsync: submitSignupForm, isPending } = useSignUp();
 
-  const onSubmit = async (values: SignUpDto) => {
-    try {
-      const { message } = await submitSignupForm(values);
-      api.open({
-        message,
-        duration: 0,
-        type: 'success',
-      });
-      router.push(ROUTERS.signin);
-    } catch (error: unknown) {
-      // @ts-ignore
-      const body = await error?.response?.json();
-      const { message } = body;
-      api.open({
-        message,
-        duration: 0,
-        type: 'error',
-      });
-    }
+  const onSubmit = (values: SignUpBodyDto) => {
+    startTransaction(async () => {
+      try {
+        const response: KyResponse<any> = await ky.post('/api/auth/signup', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          json: values,
+        });
+        const data = await response.json();
+        const { message } = data;
+
+        api.open({
+          message,
+          duration: 0,
+          type: 'success',
+        });
+        router.push(ROUTERS.signin);
+      } catch (error: unknown) {
+        const body = await error?.response?.json();
+        const { message } = body;
+        api.open({
+          message,
+          duration: 0,
+          type: 'error',
+        });
+      }
+    });
   };
 
   return (

@@ -12,10 +12,17 @@ async function bootstrap() {
   const globalPrefix = configService.get('apiPrefix') as string;
 
   app.setGlobalPrefix(globalPrefix);
-  app.enableCors();
   app.use(cookieParser());
+  app.enableCors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie'],
+  });
 
   await app.listen(port);
+
+  console.log('App listening on port %d', port);
 }
 
 void bootstrap();
