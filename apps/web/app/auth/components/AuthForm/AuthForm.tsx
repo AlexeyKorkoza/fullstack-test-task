@@ -5,23 +5,23 @@ import { Form, Input } from 'antd';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import type { SignUpBodyDto } from '@/signup/models';
+import type { SignUpBodyDto } from 'app/signup/dto';
 import { FormErrorMessage } from '@/shared/FormErrorMessage';
-import { type AuthFormModel } from '@/(auth)/models';
-import { authFormSchema } from '@/(auth)/schemas/auth-form.schema';
+import { type AuthFormInterface } from 'app/auth/interfaces';
+import { authFormSchema } from '@/auth/schemas/auth-form.schema';
 import './AuthForm.scss';
 
 type Props = {
-  onSubmitAction: SubmitHandler<AuthFormModel>;
+  onSubmitAction: SubmitHandler<AuthFormInterface>;
   footer: ReactNode;
   isPending: boolean;
 };
 
 export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
-  const formProps = useForm<AuthFormModel>({
+  const formProps = useForm<AuthFormInterface>({
     defaultValues: {
-      email: 'email1@test.com',
-      password: '12345678',
+      email: '',
+      password: '',
     },
     resolver: zodResolver(authFormSchema),
   });

@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import { buildReactQueryClient } from '@/(core)/react-query';
+import { buildReactQueryClient } from '@/core/react-query';
 import { type ReactNode } from 'react';
 
 export default function Providers({ children }: { children: ReactNode }) {

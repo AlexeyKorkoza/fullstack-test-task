@@ -1,7 +1,7 @@
 import ky, { type KyResponse } from 'ky';
 
-import { type UsersListResponseDto } from 'app/users/(dtos)';
-import { createApiClient } from '@/(core)/api';
+import { type UsersListResponseDto } from 'app/users/dto';
+import { createApiClient } from '@/core/api';
 import { headers } from 'next/headers';
 
 const apiClient = createApiClient();

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { type SignUpBodyDto } from '@/signup/models';
-import { signUpUser } from '@/(auth)/api';
+import { type SignUpBodyDto } from 'app/signup/dto';
+import { signUpUser } from '@/auth/api';
 
 export const useSignUp = () => {
   return useMutation({

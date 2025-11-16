@@ -1,9 +1,9 @@
 import { type FC } from 'react';
 import { format } from 'date-fns';
 
-import { type UserInfoResponseDto } from 'app/profile/dtos';
-import Card from '@/profile/components/Card';
-import { DATE_FORMAT } from '@/(constants)/date-format.constant';
+import { type UserInfoResponseDto } from 'app/profile/dto';
+import { DATE_FORMAT } from '@/constants/date-format.constant';
+import { Card } from '@/shared/Card';
 import './Profile.scss';
 
 type Props = {

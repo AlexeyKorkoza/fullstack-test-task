@@ -8,7 +8,7 @@ import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
-} from '@/(constants)/cookie.constant';
+} from '@/constants/cookie.constant';
 
 export const getCookiesStore = async (): Promise<ReadonlyRequestCookies> => {
   return await cookies();

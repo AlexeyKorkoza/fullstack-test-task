@@ -1,17 +1,20 @@
 import { format } from 'date-fns';
 
-import Table from '@/users/(components)/Table';
-import { USERS_TABLE_COLUMNS } from '@/users/(constants)/users-table-columns';
-import { fetchUsersFromApi } from '@/users/(api)';
-import { DATE_FORMAT } from '@/(constants)/date-format.constant';
-import type { UserListItem, UserListItemColumn } from '@/users/(interfaces)';
+import { USERS_TABLE_COLUMNS } from '@/users/constants/users-table-columns.constant';
+import { fetchUsersFromApi } from 'app/users/api';
+import { DATE_FORMAT } from '@/constants/date-format.constant';
+import type {
+  UserListItemInterface,
+  UserListItemColumnInterface,
+} from 'app/users/interfaces';
+import { Table } from '@/shared/Table';
 
 export default async function UsersPage() {
   try {
     const data = await fetchUsersFromApi();
     const { users } = data;
 
-    const finalUsers = users.map((user: UserListItem) => {
+    const finalUsers = users.map((user: UserListItemInterface) => {
       const { createdAt, id, email } = user;
       const formattedDate = format(new Date(createdAt), DATE_FORMAT);
 
@@ -24,7 +27,7 @@ export default async function UsersPage() {
     });
 
     return (
-      <Table<UserListItemColumn>
+      <Table<UserListItemColumnInterface>
         columns={USERS_TABLE_COLUMNS}
         dataSource={finalUsers}
       />

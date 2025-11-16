@@ -1,14 +1,15 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { Button, Form, notification } from 'antd';
 import { useTransition } from 'react';
 import Link from 'next/link';
+import ky, { type KyResponse } from 'ky';
 
-import { type SignUpBodyDto } from '@/signup/models';
-import { ROUTERS } from '@/(constants)/router.constant';
-import { AuthForm } from '@/(auth)/components/AuthForm';
+import { type SignUpBodyDto } from 'app/signup/dto';
+import { ROUTERS } from '@/constants/router.constant';
+import { AuthForm } from '@/auth/components/AuthForm';
 import './SignUpForm.scss';
-import ky, { KyResponse } from 'ky';
 
 export const SignUpForm = () => {
   const [api, contextHolder] = notification.useNotification();

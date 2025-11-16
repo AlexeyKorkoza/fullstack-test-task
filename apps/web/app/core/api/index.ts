@@ -7,7 +7,7 @@ import ky, {
 } from 'ky';
 import { NextRequest } from 'next/server';
 
-import { generateCookies, getCookies } from '@/(core)/cookies';
+import { generateCookies, getCookies } from '@/core/cookies';
 
 export const createApiClient = (): KyInstance => {
   const prefixUrl = process.env.NEXT_PUBLIC_API_URL;

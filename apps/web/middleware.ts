@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 
-import { ROUTERS } from '@/(constants)/router.constant';
-import { generateCookies, getCookies } from '@/(core)/cookies';
+import { ROUTERS } from '@/constants/router.constant';
+import { generateCookies, getCookies } from '@/core/cookies';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;

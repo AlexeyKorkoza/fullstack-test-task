@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { refreshAccessToken } from '@/(core)/cookies';
-import { fetchUsers } from '@/users/(api)';
-import { retryRequest } from '@/(core)/api';
+import { refreshAccessToken } from '@/core/cookies';
+import { fetchUsers } from 'app/users/api';
+import { retryRequest } from '@/core/api';
 
 export async function GET(request: NextRequest) {
   try {

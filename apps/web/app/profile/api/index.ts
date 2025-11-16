@@ -1,8 +1,8 @@
 import ky, { type KyResponse } from 'ky';
 import { headers } from 'next/headers';
 
-import { createApiClient } from '@/(core)/api';
-import { type UserInfoResponseDto } from 'app/profile/dtos';
+import { createApiClient } from '@/core/api';
+import { type UserInfoResponseDto } from 'app/profile/dto';
 
 const apiClient = createApiClient();
 

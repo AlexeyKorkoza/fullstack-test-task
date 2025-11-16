@@ -1,8 +1,8 @@
 import { type KyResponse } from 'ky';
 
-import { createApiClient } from '@/(core)/api';
-import { type SignUpBodyDto, type SignUpResponseDto } from '@/signup/models';
-import { type SignInBodyDto, type SignInResponseDto } from '@/signin/models';
+import { createApiClient } from '@/core/api';
+import { type SignUpBodyDto, type SignUpResponseDto } from 'app/signup/dto';
+import { type SignInBodyDto, type SignInResponseDto } from 'app/signin/dto';
 
 const apiClient = createApiClient();
 

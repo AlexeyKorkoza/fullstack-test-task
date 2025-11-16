@@ -4,7 +4,7 @@ import {
   EMAIL_INVALID_ERROR,
   MIN_PASSWORD_LENGTH,
   PASSWORD_INVALID_ERROR,
-} from '@/(auth)/constants/validation.constant';
+} from '@/auth/constants/validation.constant';
 
 export const authFormSchema = z
   .object({
