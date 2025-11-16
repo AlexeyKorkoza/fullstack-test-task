@@ -18,19 +18,17 @@ export const createApiClient = (): KyInstance => {
     hooks: {
       beforeRequest: [
         async (request: KyRequest): Promise<void> => {
-          if (!request.headers.get('cookie')) {
-            const { accessTokenCookie, refreshTokenCookie, sessionIdCookie } =
-              await getCookies();
+          const { accessTokenCookie, refreshTokenCookie, sessionIdCookie } =
+            await getCookies();
 
-            const generatedCookies = generateCookies({
-              accessTokenCookie,
-              refreshTokenCookie,
-              sessionIdCookie,
-            });
+          const generatedCookies = generateCookies({
+            accessTokenCookie,
+            refreshTokenCookie,
+            sessionIdCookie,
+          });
 
-            if (generatedCookies) {
-              request.headers.set('cookie', generatedCookies);
-            }
+          if (generatedCookies) {
+            request.headers.set('cookie', generatedCookies);
           }
         },
       ],

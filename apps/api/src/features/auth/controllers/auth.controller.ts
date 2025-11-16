@@ -34,6 +34,7 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
 } from '@/constants/cookies.constant';
+import { RefreshTokenGuard } from '@/core/guards/refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -130,7 +131,7 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(UserSessionGuard)
+  @UseGuards(RefreshTokenGuard, UserSessionGuard)
   @Post('/refresh')
   async refreshAccessToken(
     @Req()

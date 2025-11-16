@@ -131,6 +131,14 @@ export class AuthService {
         throw new NotFoundException('Refresh token not found');
       }
 
+      const isRefreshTokenExpired = foundRefreshToken.expiresAt < new Date();
+      if (isRefreshTokenExpired) {
+        throw new HttpException(
+          'Refresh token expired',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const accessToken =
         await this.tokenService.generateAccessToken<AccessTokenPayload>({
           userId,

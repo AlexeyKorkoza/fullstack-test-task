@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { TokenService } from '@/core/services/token.service';
-import {
-  ACCESS_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_COOKIE_NAME,
-} from '@/constants/cookies.constant';
+import { ACCESS_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
 import { type AccessTokenPayload } from '@/features/auth/interfaces';
 
 @Injectable()
@@ -24,20 +21,13 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('No access token');
     }
 
-    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME] as string;
-    if (!refreshToken) {
-      throw new UnauthorizedException('No refresh token');
-    }
-
     try {
       const payload =
         await this.tokenService.decodeAccessToken<AccessTokenPayload>(
           accessToken,
         );
-      const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME] as string;
 
       request.user = payload;
-      request.refreshToken = refreshToken;
     } catch {
       throw new UnauthorizedException();
     }
