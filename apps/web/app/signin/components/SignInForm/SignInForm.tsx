@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTransition } from 'react';
 import ky, { type KyResponse } from 'ky';
 
-import { ROUTERS } from '@/(constants)/router';
+import { ROUTERS } from '@/(constants)/router.constant';
 import { AuthForm } from '@/(auth)/components/AuthForm';
 import { type SignInBodyDto } from '@/signin/models';
 import './SignInForm.scss';

@@ -1,7 +1,9 @@
 import { type FC } from 'react';
+import { format } from 'date-fns';
 
-import { type UserInfoResponseDto } from '@/profile/models';
+import { type UserInfoResponseDto } from 'app/profile/dtos';
 import Card from '@/profile/components/Card';
+import { DATE_FORMAT } from '@/(constants)/date-format.constant';
 import './Profile.scss';
 
 type Props = {
@@ -9,8 +11,8 @@ type Props = {
 };
 
 export const Profile: FC<Props> = ({ user }) => {
-  const lastActivity = new Date(user.lastActivity).toISOString();
-  const createdAt = new Date(user.createdAt).toISOString();
+  const lastActivity = format(new Date(user.lastActivity), DATE_FORMAT);
+  const createdAt = format(new Date(user.createdAt), DATE_FORMAT);
 
   return (
     <Card title="User Profile" variant="borderless">

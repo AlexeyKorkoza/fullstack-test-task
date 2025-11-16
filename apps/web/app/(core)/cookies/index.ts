@@ -1,15 +1,14 @@
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 import { cookies } from 'next/headers';
 import type { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
-import ky, { type NormalizedOptions } from 'ky';
+import ky from 'ky';
 import setCookie from 'set-cookie-parser';
 
 import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
-} from '@/(constants)/cookie';
-import { NextRequest } from 'next/server';
+} from '@/(constants)/cookie.constant';
 
 export const getCookiesStore = async (): Promise<ReadonlyRequestCookies> => {
   return await cookies();
@@ -53,13 +52,7 @@ export const generateCookies = ({
   return cookieString;
 };
 
-export const refreshAccessToken = async ({
-  request,
-  options,
-}: {
-  request: NextRequest;
-  options: NormalizedOptions;
-}) => {
+export const refreshAccessToken = async (): Promise<void> => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   try {
@@ -84,6 +77,7 @@ export const refreshAccessToken = async ({
       throw new Error('Failed to refresh token');
     }
 
+    // @ts-ignore
     const parsedCookies = setCookie.parse(refreshTokenResponse);
 
     const newAccessTokenCookie = parsedCookies.find(
@@ -101,24 +95,6 @@ export const refreshAccessToken = async ({
     };
     const cookiesStore = await getCookiesStore();
     cookiesStore.set(name, value, cookieOptions);
-
-    const newGeneratedCookies = generateCookies({
-      refreshTokenCookie,
-      sessionIdCookie,
-    });
-    const newCookie = `${newAccessTokenCookie.name}=${newAccessTokenCookie.value}; ${newGeneratedCookies}`;
-
-    const { prefixUrl, ...restOptions } = options;
-
-    return ky(request.url, {
-      ...restOptions,
-      headers: {
-        ...Object.fromEntries(request.headers.entries()),
-        cookie: newCookie,
-      },
-      credentials: 'include',
-      retry: 0,
-    });
   } catch (error) {
     console.error('Refresh access token is failed:', error);
   }

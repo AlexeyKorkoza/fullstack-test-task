@@ -5,17 +5,15 @@ import { useTransition } from 'react';
 import Link from 'next/link';
 
 import { type SignUpBodyDto } from '@/signup/models';
-import { ROUTERS } from '@/(constants)/router';
+import { ROUTERS } from '@/(constants)/router.constant';
 import { AuthForm } from '@/(auth)/components/AuthForm';
 import './SignUpForm.scss';
-import { signUpUser } from '@/(auth)/api';
 import ky, { KyResponse } from 'ky';
 
 export const SignUpForm = () => {
   const [api, contextHolder] = notification.useNotification();
   const router = useRouter();
   const [isPending, startTransaction] = useTransition();
-  // const { mutateAsync: submitSignupForm, isPending } = useSignUp();
 
   const onSubmit = (values: SignUpBodyDto) => {
     startTransaction(async () => {

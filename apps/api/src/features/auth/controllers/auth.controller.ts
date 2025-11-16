@@ -78,6 +78,7 @@ export class AuthController {
     if (existingSessionId) {
       return {
         user: { id: userId, email, createdAt },
+        // @ts-ignore
         message: 'Already logged in from this device',
       };
     }
@@ -122,6 +123,7 @@ export class AuthController {
     });
 
     return {
+      // @ts-ignore
       message: 'User logged in successfully',
       user: { id: userId, email, createdAt },
     };

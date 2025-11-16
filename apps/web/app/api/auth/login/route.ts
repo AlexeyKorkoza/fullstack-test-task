@@ -6,7 +6,7 @@ import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
-} from '@/(constants)/cookie';
+} from '@/(constants)/cookie.constant';
 import { getCookiesStore } from '@/(core)/cookies';
 
 export async function POST(request: NextRequest) {

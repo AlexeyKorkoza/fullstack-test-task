@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { fetchCurrentUserProfile } from '@/profile/api';
 import { refreshAccessToken } from '@/(core)/cookies';
+import { fetchUsers } from '@/users/(api)';
 import { retryRequest } from '@/(core)/api';
 
 export async function GET(request: NextRequest) {
   try {
-    const data = await fetchCurrentUserProfile();
+    const data = await fetchUsers();
 
-    return NextResponse.json(data, { status: 200 });
+    return Response.json(data, { status: 200 });
   } catch (error: any) {
     console.error('NextRequest error:', {
       message: error?.message,
