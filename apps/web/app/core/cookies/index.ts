@@ -97,5 +97,6 @@ export const refreshAccessToken = async (): Promise<void> => {
     cookiesStore.set(name, value, cookieOptions);
   } catch (error) {
     console.error('Refresh access token is failed:', error);
+    throw error;
   }
 };

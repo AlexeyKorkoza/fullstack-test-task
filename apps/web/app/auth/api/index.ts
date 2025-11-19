@@ -28,7 +28,6 @@ export const signInUser = async (body: SignInBodyDto): Promise<any> => {
     `${AUTH_PREFIX}/login`,
     {
       json: body,
-      credentials: 'include',
     },
   );
 
@@ -36,9 +35,7 @@ export const signInUser = async (body: SignInBodyDto): Promise<any> => {
 };
 
 export const signOutUser = async (): Promise<any> => {
-  const response = await apiClient.post(`${AUTH_PREFIX}/logout`, {
-    credentials: 'include',
-  });
+  const response = await apiClient.post(`${AUTH_PREFIX}/logout`, {});
 
   return response;
 };

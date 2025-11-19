@@ -87,13 +87,12 @@ export class UserSessionService {
     }
   }
 
-  findSessionByUserAndDevice(
-    userAgent: string,
-    ipAddress: string,
-  ): Promise<string | null> {
-    const sessionKey = `${this.sessionPrefix}:${this.generateDeviceHash(userAgent, ipAddress)}`;
+  generateSessionId(userAgent: string, ipAddress: string): string {
+    return `${this.sessionPrefix}:${this.generateDeviceHash(userAgent, ipAddress)}`;
+  }
 
-    return this.redis.get(sessionKey);
+  findSessionByUserAndDevice(sessionId: string): Promise<string | null> {
+    return this.redis.get(sessionId);
   }
 
   private generateDeviceHash(userAgent: string, ipAddress: string): string {

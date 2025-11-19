@@ -4,7 +4,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { type Response } from 'express';
+import { isBefore } from 'date-fns';
 
 import {
   type LoginDto,
@@ -20,16 +24,69 @@ import {
   type AccessTokenPayload,
 } from '@/features/auth/interfaces';
 import { UserSessionService } from '@/core/services/user-session.service';
+import {
+  ACCESS_TOKEN_COOKIE_NAME,
+  REFRESH_TOKEN_COOKIE_NAME,
+  SESSION_ID_COOKIE_NAME,
+} from '@/constants/cookies.constant';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly authRepository: AuthRepository,
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly refreshTokenService: RefreshTokenService,
     private readonly userSessionService: UserSessionService,
   ) {}
+
+  setCookiesInSignIn({
+    accessToken,
+    isProduction,
+    refreshToken,
+    response,
+    sessionId,
+  }: {
+    accessToken: string;
+    isProduction: boolean;
+    refreshToken: string;
+    response: Response;
+    sessionId: string;
+  }): void {
+    const userSessionTtl = this.configService.get<number>('userSession.ttl');
+    const accessTokenExpiresIn = this.configService.get<number>(
+      'accessToken.expiresIn',
+    );
+    const refreshTokenExpiresIn = this.configService.get<number>(
+      'refreshToken.expiresIn',
+    );
+
+    const commonCookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      domain: isProduction ? undefined : 'localhost',
+      path: '/',
+    };
+
+    response.cookie(SESSION_ID_COOKIE_NAME, sessionId, {
+      ...commonCookieOptions,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: userSessionTtl * 1000,
+    });
+
+    response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+      ...commonCookieOptions,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: accessTokenExpiresIn * 1000,
+    });
+
+    response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+      ...commonCookieOptions,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: refreshTokenExpiresIn * 1000,
+    });
+  }
 
   async signUp(body: SignUpDto) {
     try {
@@ -47,6 +104,10 @@ export class AuthService {
 
       return { message: 'User created successfully' };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       Logger.error('Something went wrong when signing up user', error);
 
       throw new HttpException(
@@ -62,7 +123,7 @@ export class AuthService {
 
       const user = await this.authRepository.findUser(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new UnauthorizedException('Invalid credentials');
       }
 
       const { id: userId } = user;
@@ -71,7 +132,7 @@ export class AuthService {
         user.password,
       );
       if (!isPasswordValid) {
-        throw new HttpException('Incorrect password', HttpStatus.BAD_REQUEST);
+        throw new UnauthorizedException('Invalid credentials');
       }
 
       const refreshToken = await this.tokenService.generateRefreshToken({
@@ -104,6 +165,10 @@ export class AuthService {
         user,
       };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       Logger.error('Something went wrong when logging in user', error);
 
       throw new HttpException(
@@ -131,7 +196,10 @@ export class AuthService {
         throw new NotFoundException('Refresh token not found');
       }
 
-      const isRefreshTokenExpired = foundRefreshToken.expiresAt < new Date();
+      const expiresAtDate = new Date(foundRefreshToken.expiresAt);
+      const currentDate = new Date();
+
+      const isRefreshTokenExpired = isBefore(expiresAtDate, currentDate);
       if (isRefreshTokenExpired) {
         throw new HttpException(
           'Refresh token expired',
@@ -147,6 +215,10 @@ export class AuthService {
 
       return { accessToken };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       Logger.error('Something went wrong when refreshing access token', error);
 
       throw new HttpException(
@@ -156,10 +228,32 @@ export class AuthService {
     }
   }
 
-  async logoutUser(refreshToken: string): Promise<void> {
+  async logoutUser({
+    refreshToken,
+    sessionId,
+  }: {
+    refreshToken: string;
+    sessionId: string;
+  }): Promise<void> {
     try {
-      await this.refreshTokenService.revokeRefreshToken(refreshToken);
+      const userSession = await this.userSessionService.getSession(sessionId);
+      const { userId } = userSession;
+
+      const foundRefreshToken = await this.refreshTokenService.findRefreshToken(
+        { refreshToken, userId },
+      );
+      if (!foundRefreshToken) {
+        throw new NotFoundException('Refresh token not found');
+      }
+
+      const { token_hash: tokenHash } = foundRefreshToken;
+
+      await this.refreshTokenService.revokeRefreshToken(tokenHash);
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
       Logger.error('Something went wrong when logging out user', error);
 
       throw new HttpException(

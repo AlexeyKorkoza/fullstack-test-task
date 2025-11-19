@@ -14,10 +14,23 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, data });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    const status = error?.response?.status || 500;
+    let errorMessage = 'Registration failed';
+
+    if (error?.response?.json) {
+      try {
+        const body = await error.response.json();
+        errorMessage = body.message || body.error || 'Registration failed';
+      } catch {
+        // If JSON parsing fails, use default message
+        errorMessage = 'Registration failed';
+      }
+    }
+
     return NextResponse.json(
-      { error: 'Authentication failed' },
-      { status: 401 },
+      { error: errorMessage },
+      { status },
     );
   }
 }

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       url: error?.response?.url,
     });
 
-    if (error.response?.status === 401) {
+    if (error?.response?.status === 401) {
       try {
         await refreshAccessToken();
 
@@ -28,19 +28,45 @@ export async function GET(request: NextRequest) {
         const retryData = await retryResponse.json();
 
         return Response.json(retryData, { status: 200 });
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         console.error('Token refresh failed:', refreshError);
 
+        const refreshStatus = refreshError?.response?.status || 401;
+        let refreshErrorMessage = 'Authentication failed';
+
+        if (refreshError?.response?.json) {
+          try {
+            const body = await refreshError.response.json();
+            refreshErrorMessage = body.message || body.error || 'Authentication failed';
+          } catch {
+            // If JSON parsing fails, use default message
+            refreshErrorMessage = 'Authentication failed';
+          }
+        }
+
         return NextResponse.json(
-          { error: 'Authentication failed' },
-          { status: 401 },
+          { error: refreshErrorMessage },
+          { status: refreshStatus },
         );
       }
     }
 
+    const status = error?.response?.status || 500;
+    let errorMessage = 'Failed to fetch profile';
+
+    if (error?.response?.json) {
+      try {
+        const body = await error.response.json();
+        errorMessage = body.message || body.error || 'Failed to fetch profile';
+      } catch {
+        // If JSON parsing fails, use default message
+        errorMessage = 'Failed to fetch profile';
+      }
+    }
+
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 },
+      { error: errorMessage },
+      { status },
     );
   }
 }

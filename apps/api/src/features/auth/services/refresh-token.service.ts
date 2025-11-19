@@ -70,9 +70,7 @@ export class RefreshTokenService {
     return this.refreshTokenRepository.createRefreshToken(body);
   }
 
-  async revokeRefreshToken(refreshToken: string): Promise<RefreshTokenEntity> {
-    const hashedRefreshToken = await this.hashRefreshToken(refreshToken);
-
-    return this.refreshTokenRepository.revokeRefreshToken(hashedRefreshToken);
+  async revokeRefreshToken(tokenHash: string): Promise<RefreshTokenEntity> {
+    return this.refreshTokenRepository.revokeRefreshToken(tokenHash);
   }
 }

@@ -70,13 +70,24 @@ export class AuthController {
     const userAgent = request.headers['user-agent'] ?? '';
     const ipAddress = request.ip ?? '';
 
+    const generatedExistedSessionId = this.userSessionService.generateSessionId(
+      userAgent,
+      ipAddress,
+    );
     const existingSessionId =
       await this.userSessionService.findSessionByUserAndDevice(
-        userAgent,
-        ipAddress,
+        generatedExistedSessionId,
       );
 
     if (existingSessionId) {
+      this.authService.setCookiesInSignIn({
+        accessToken,
+        isProduction: this.isProduction,
+        refreshToken,
+        response,
+        sessionId: generatedExistedSessionId.split(':').at(1),
+      });
+
       return {
         user: { id: userId, email, createdAt },
         // @ts-ignore
@@ -90,37 +101,12 @@ export class AuthController {
       user,
     });
 
-    const userSessionTtl = this.configService.get<number>('userSession.ttl');
-    const accessTokenExpiresIn = this.configService.get<number>(
-      'accessToken.expiresIn',
-    );
-    const refreshTokenExpiresIn = this.configService.get<number>(
-      'refreshToken.expiresIn',
-    );
-
-    const commonCookieOptions = {
-      httpOnly: true,
-      secure: this.isProduction,
-      domain: this.isProduction ? undefined : 'localhost',
-      path: '/',
-    };
-
-    response.cookie(SESSION_ID_COOKIE_NAME, sessionId, {
-      ...commonCookieOptions,
-      sameSite: this.isProduction ? 'strict' : 'lax',
-      maxAge: userSessionTtl * 1000,
-    });
-
-    response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
-      ...commonCookieOptions,
-      sameSite: this.isProduction ? 'strict' : 'lax',
-      maxAge: accessTokenExpiresIn * 1000,
-    });
-
-    response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-      ...commonCookieOptions,
-      sameSite: this.isProduction ? 'strict' : 'lax',
-      maxAge: refreshTokenExpiresIn * 1000,
+    this.authService.setCookiesInSignIn({
+      accessToken,
+      isProduction: this.isProduction,
+      refreshToken,
+      response,
+      sessionId,
     });
 
     return {
@@ -167,7 +153,7 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard, UserSessionGuard)
+  @UseGuards(AuthGuard, RefreshTokenGuard, UserSessionGuard)
   @Post('/logout')
   async logout(
     @Req()
@@ -189,8 +175,8 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token not found');
     }
 
+    await this.authService.logoutUser({ refreshToken, sessionId });
     await this.userSessionService.destroySession(sessionId);
-    await this.authService.logoutUser(refreshToken);
 
     response.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
     response.clearCookie(REFRESH_TOKEN_COOKIE_NAME);

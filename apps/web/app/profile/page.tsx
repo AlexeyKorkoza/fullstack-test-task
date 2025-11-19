@@ -7,7 +7,7 @@ export default async function ProfilePage() {
 
     return <Profile user={data.user} />;
   } catch (error: any) {
-    console.error('Failed to fetch profile:', error);
+    console.error('Failed to fetch profile:', error.response.error);
 
     if (error?.response?.status === 401) {
       return <div>Please sign in to view users.</div>;

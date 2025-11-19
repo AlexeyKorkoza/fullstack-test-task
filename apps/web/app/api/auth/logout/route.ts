@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { signOutUser } from '@/auth/api';
-import {
-  ACCESS_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_COOKIE_NAME,
-  SESSION_ID_COOKIE_NAME,
-} from '@/constants/cookie.constant';
-import { getCookiesStore, refreshAccessToken } from '@/core/cookies';
+import { refreshAccessToken } from '@/core/cookies';
 import { retryRequest } from '@/core/api';
-
-const LIST_COOKIES_TO_DELETE = [
-  ACCESS_TOKEN_COOKIE_NAME,
-  REFRESH_TOKEN_COOKIE_NAME,
-  SESSION_ID_COOKIE_NAME,
-];
+import { deleteCookies } from '@/auth/services/auth.service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,16 +12,12 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to sign out');
     }
 
-    const cookiesStore = await getCookiesStore();
-    LIST_COOKIES_TO_DELETE.forEach((name: string) => {
-      cookiesStore.delete(name);
-    });
-
     const data = await externalResponse.json();
+    await deleteCookies();
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, { status: 200 });
   } catch (error: any) {
-    if (error.response?.status === 401) {
+    if (error?.response?.status === 401) {
       try {
         await refreshAccessToken();
 
@@ -42,16 +28,40 @@ export async function POST(request: NextRequest) {
         const retryData = await retryResponse.json();
 
         return Response.json(retryData, { status: 200 });
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         console.error('Logout failed:', refreshError);
 
-        return NextResponse.json({ error: 'Logout failed' }, { status: 401 });
+        const refreshStatus = refreshError?.response?.status || 401;
+        let refreshErrorMessage = 'Logout failed';
+
+        if (refreshError?.response?.json) {
+          try {
+            const body = await refreshError.response.json();
+            refreshErrorMessage = body.message || body.error || 'Logout failed';
+          } catch {
+            refreshErrorMessage = 'Logout failed';
+          }
+        }
+
+        return NextResponse.json(
+          { error: refreshErrorMessage },
+          { status: refreshStatus },
+        );
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 },
-    );
+    const status = error?.response?.status || 500;
+    let errorMessage = 'Logout failed';
+
+    if (error?.response?.json) {
+      try {
+        const body = await error.response.json();
+        errorMessage = body.message || body.error || 'Logout failed';
+      } catch {
+        errorMessage = 'Logout failed';
+      }
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status });
   }
 }
