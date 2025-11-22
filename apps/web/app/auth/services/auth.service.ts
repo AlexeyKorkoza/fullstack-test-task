@@ -19,8 +19,8 @@ export const deleteCookies = async (): Promise<void> => {
     if (cookiesStore.has(cookieName)) {
       const cookie = cookiesStore.get(cookieName);
       if (cookie) {
-        const { name, value, ...rest } = cookie;
-        cookiesStore.delete({ name, ...rest });
+        const { name } = cookie;
+        cookiesStore.delete(name);
       }
     }
   });

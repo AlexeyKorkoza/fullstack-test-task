@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC } from 'react';
+import { type FC, useState, useEffect } from 'react';
 import { Layout, Dropdown, notification, Space } from 'antd';
 import {
   UserOutlined,
@@ -9,21 +9,34 @@ import {
   OrderedListOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
+import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { ROUTERS } from '@/constants/router.constant';
 import './Header.scss';
 
 const { Header: AntHeader } = Layout;
 
 type Props = {
-  isAuthenticated: boolean;
   signOutApiAction: () => Promise<any>;
 };
 
-export const Header: FC<Props> = ({ isAuthenticated, signOutApiAction }) => {
+export const Header: FC<Props> = ({ signOutApiAction }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem(IS_AUTHENTICATED);
+    }
+    return false;
+  });
   const [api, contextHolder] = notification.useNotification();
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAuthenticated(!!localStorage.getItem(IS_AUTHENTICATED));
+    }
+  }, [pathname]);
 
   const onLogout = async () => {
     try {
@@ -35,10 +48,16 @@ export const Header: FC<Props> = ({ isAuthenticated, signOutApiAction }) => {
         duration: 0,
         type: 'success',
       });
+
+      localStorage.removeItem(IS_AUTHENTICATED);
+      setIsAuthenticated(false);
       router.push(ROUTERS.signin);
     } catch (error: unknown) {
-      const body = await error?.response?.json();
-      const { message } = body;
+      const body =
+        error && typeof error === 'object' && 'response' in error
+          ? await (error as any).response?.json()
+          : null;
+      const message = body?.message || 'An error occurred';
       api.open({
         message,
         duration: 0,

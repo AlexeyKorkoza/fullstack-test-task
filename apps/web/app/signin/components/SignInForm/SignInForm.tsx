@@ -6,6 +6,7 @@ import { useTransition } from 'react';
 import ky, { type KyResponse } from 'ky';
 
 import { ROUTERS } from '@/constants/router.constant';
+import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { AuthForm } from '@/auth/components/AuthForm';
 import { type SignInBodyDto } from 'app/signin/dto';
 import './SignInForm.scss';
@@ -32,11 +33,15 @@ export const SignInForm = () => {
           duration: 0,
           type: 'success',
         });
+        localStorage.setItem(IS_AUTHENTICATED, 'true');
+        router.refresh();
         router.push(ROUTERS.profile);
       } catch (error: unknown) {
-        console.error(error);
-        const body = await error?.response?.json();
-        const { message } = body;
+        const body =
+          error && typeof error === 'object' && 'response' in error
+            ? await (error as any).response?.json()
+            : null;
+        const message = body?.message || 'An error occurred';
         api.open({
           message,
           duration: 0,

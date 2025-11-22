@@ -57,7 +57,7 @@ export class RefreshTokenService {
     );
 
     const token_hash = await this.hashRefreshToken(refresh_token);
-    const expiresAt = new Date(Date.now() + refreshTokenExpiresIn);
+    const expiresAt = new Date(Date.now() + refreshTokenExpiresIn * 1000);
     const body: Pick<
       RefreshTokenEntity,
       'userId' | 'token_hash' | 'expiresAt'
