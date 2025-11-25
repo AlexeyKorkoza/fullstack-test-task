@@ -9,12 +9,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { type Response } from 'express';
 import { isBefore } from 'date-fns';
-
 import {
-  type LoginDto,
-  type RefreshAccessTokenResponseDto,
-  type SignUpDto,
-} from '@/features/auth/dtos';
+  type BasicResponseDto,
+  type LoginRequestDto,
+  type SignUpRequestDto,
+} from '@repo/api';
+
 import { AuthRepository } from '@/features/auth/repositories/auth.repository';
 import { TokenService } from '@/core/services/token.service';
 import { PasswordService } from '@/features/auth/services/password.service';
@@ -88,7 +88,7 @@ export class AuthService {
     });
   }
 
-  async signUp(body: SignUpDto) {
+  async signUp(body: SignUpRequestDto): Promise<BasicResponseDto> {
     try {
       const { email, password } = body;
       const user = await this.authRepository.findUser(email);
@@ -117,7 +117,7 @@ export class AuthService {
     }
   }
 
-  async login(body: LoginDto): Promise<AuthLoginResponse> {
+  async login(body: LoginRequestDto): Promise<AuthLoginResponse> {
     try {
       const { email, password } = body;
 
@@ -184,7 +184,7 @@ export class AuthService {
   }: {
     refreshToken: string;
     sessionId: string;
-  }): Promise<RefreshAccessTokenResponseDto> {
+  }): Promise<{ accessToken: string }> {
     try {
       const userSession = await this.userSessionService.getSession(sessionId);
       const { userId, email } = userSession;

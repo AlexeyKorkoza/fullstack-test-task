@@ -1,2 +1,2 @@
 export { type RefreshTokenEntity } from './refresh-token.entity';
-export { type UserEntity } from './user.entity';
+export { type UserSession } from './user-session.entity';

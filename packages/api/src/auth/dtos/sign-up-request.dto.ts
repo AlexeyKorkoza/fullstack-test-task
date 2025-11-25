@@ -1,4 +1,4 @@
-export interface SignInBodyDto {
+export interface SignUpRequestDto {
   email: string;
   password: string;
 }

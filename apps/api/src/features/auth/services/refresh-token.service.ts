@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 
 import { TokenService } from '@/core/services/token.service';
 import { RefreshTokenRepository } from '@/features/auth/repositories/refresh-token.repository';
-import { type RefreshTokenEntity } from '@/features/auth/entities';
+import { type RefreshTokenEntity } from '@repo/api';
 
 @Injectable()
 export class RefreshTokenService {

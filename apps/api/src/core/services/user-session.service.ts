@@ -4,7 +4,7 @@ import { type Redis } from 'ioredis';
 import crypto from 'crypto';
 
 import { type UserSession } from '@/features/auth/interfaces';
-import { type UserEntity } from '@/features/auth/entities';
+import { type UserEntity } from '@repo/api';
 
 @Injectable()
 export class UserSessionService {

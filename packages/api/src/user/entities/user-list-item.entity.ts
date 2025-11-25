@@ -1,3 +1,3 @@
-import type { UserEntity } from '@repo/api';
+import type { UserEntity } from './user.entity';
 
 export type UserListItem = Omit<UserEntity, 'password' | 'updatedAt'>;

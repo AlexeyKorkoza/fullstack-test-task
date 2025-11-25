@@ -12,13 +12,14 @@ import {
 } from '@nestjs/common';
 import { type Response, type Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import {
+  type BasicResponseDto,
+  type LoginRequestDto,
+  type LoginResponseDto,
+  type SignUpRequestDto,
+} from '@repo/api';
 
 import { AuthService } from '@/features/auth/services/auth.service';
-import {
-  type LoginDto,
-  type LoginResponseDto,
-  type SignUpDto,
-} from '@/features/auth/dtos';
 import { ZodValidationPipe } from '@/core/pipes/zod-validation.pipe';
 import { signUpSchema } from '@/features/auth/schemas/sign-up.schema';
 import { loginSchema } from '@/features/auth/schemas/login.schema';
@@ -51,7 +52,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/register')
   @UsePipes(new ZodValidationPipe(signUpSchema))
-  signUp(@Body() body: SignUpDto) {
+  signUp(@Body() body: SignUpRequestDto): Promise<BasicResponseDto> {
     return this.authService.signUp(body);
   }
 
@@ -59,7 +60,7 @@ export class AuthController {
   @Post('/login')
   @UsePipes(new ZodValidationPipe(loginSchema))
   async login(
-    @Body() body: LoginDto,
+    @Body() body: LoginRequestDto,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginResponseDto> {
@@ -90,7 +91,6 @@ export class AuthController {
 
       return {
         user: { id: userId, email, createdAt },
-        // @ts-ignore
         message: 'Already logged in from this device',
       };
     }
@@ -110,7 +110,6 @@ export class AuthController {
     });
 
     return {
-      // @ts-ignore
       message: 'User logged in successfully',
       user: { id: userId, email, createdAt },
     };

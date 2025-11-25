@@ -6,9 +6,9 @@ import { useTransition } from 'react';
 import Link from 'next/link';
 import ky, { type KyResponse } from 'ky';
 
-import { type SignUpBodyDto } from 'app/signup/dto';
 import { ROUTERS } from '@/constants/router.constant';
 import { AuthForm } from '@/auth/components/AuthForm';
+import { type BasicResponseDto, type SignUpRequestDto } from '@repo/api';
 import './SignUpForm.scss';
 
 export const SignUpForm = () => {
@@ -16,15 +16,18 @@ export const SignUpForm = () => {
   const router = useRouter();
   const [isPending, startTransaction] = useTransition();
 
-  const onSubmit = (values: SignUpBodyDto) => {
+  const onSubmit = (values: SignUpRequestDto) => {
     startTransaction(async () => {
       try {
-        const response: KyResponse<any> = await ky.post('/api/auth/signup', {
-          headers: {
-            'Content-Type': 'application/json',
+        const response: KyResponse<BasicResponseDto> = await ky.post(
+          '/api/auth/signup',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            json: values,
           },
-          json: values,
-        });
+        );
         const data = await response.json();
         const { message } = data;
 

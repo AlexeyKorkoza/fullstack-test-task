@@ -1,19 +1,24 @@
 'use server';
+
 import ky, { type KyResponse } from 'ky';
+import { headers } from 'next/headers';
 
 import { createApiClient } from '@/core/api';
-import { type SignUpBodyDto, type SignUpResponseDto } from 'app/signup/dto';
-import { type SignInBodyDto, type SignInResponseDto } from 'app/signin/dto';
-import { headers } from 'next/headers';
+import {
+  type BasicResponseDto,
+  type LoginRequestDto,
+  type LoginResponseDto,
+  type SignUpRequestDto,
+} from '@repo/api';
 
 const apiClient = createApiClient();
 
 const AUTH_PREFIX = 'auth';
 
 export const signUpUser = async (
-  body: SignUpBodyDto,
-): Promise<KyResponse<SignUpResponseDto>> => {
-  const response = await apiClient.post<SignUpResponseDto>(
+  body: SignUpRequestDto,
+): Promise<KyResponse<BasicResponseDto>> => {
+  const response = await apiClient.post<BasicResponseDto>(
     `${AUTH_PREFIX}/register`,
     {
       json: body,
@@ -23,18 +28,17 @@ export const signUpUser = async (
   return response;
 };
 
-export const signInUser = async (body: SignInBodyDto): Promise<any> => {
-  const response = await apiClient.post<{ message: string }>(
-    `${AUTH_PREFIX}/login`,
-    {
-      json: body,
-    },
-  );
+export const signInUser = async (
+  body: LoginRequestDto,
+): Promise<KyResponse<LoginResponseDto>> => {
+  const response = await apiClient.post(`${AUTH_PREFIX}/login`, {
+    json: body,
+  });
 
   return response;
 };
 
-export const signOutUser = async (): Promise<any> => {
+export const signOutUser = async (): Promise<KyResponse<BasicResponseDto>> => {
   const response = await apiClient.post(`${AUTH_PREFIX}/logout`, {});
 
   return response;

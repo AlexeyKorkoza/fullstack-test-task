@@ -1,14 +1,11 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
+import { type UserInfoResponseDto, type UserListResponseDto } from '@repo/api';
 
 import { UsersService } from '@/features/users/services/users.service';
 import { AuthGuard } from '@/core/guards/auth.guard';
 import { UserSessionGuard } from '@/core/guards/user-session.guard';
 import type { AccessTokenPayload } from '@/features/auth/interfaces';
-import {
-  type UserInfoResponseDto,
-  type UserListResponseDto,
-} from '@/features/users/dtos';
 
 @Controller('')
 export class UsersController {

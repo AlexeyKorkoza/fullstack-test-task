@@ -1,4 +1,5 @@
 'use client';
+
 import { Button, Form, notification } from 'antd';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +9,7 @@ import ky, { type KyResponse } from 'ky';
 import { ROUTERS } from '@/constants/router.constant';
 import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { AuthForm } from '@/auth/components/AuthForm';
-import { type SignInBodyDto } from 'app/signin/dto';
+import { type LoginRequestDto, type LoginResponseDto } from '@repo/api';
 import './SignInForm.scss';
 
 export const SignInForm = () => {
@@ -16,15 +17,18 @@ export const SignInForm = () => {
   const router = useRouter();
   const [isPending, startTransaction] = useTransition();
 
-  const onSubmit = (values: SignInBodyDto) => {
+  const onSubmit = (values: LoginRequestDto) => {
     startTransaction(async () => {
       try {
-        const response: KyResponse<any> = await ky.post('/api/auth/login', {
-          headers: {
-            'Content-Type': 'application/json',
+        const response: KyResponse<LoginResponseDto> = await ky.post(
+          '/api/auth/login',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            json: values,
           },
-          json: values,
-        });
+        );
         const data = await response.json();
         const { message } = data;
 
