@@ -10,15 +10,23 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+
 import { type Response, type Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+
 import {
   type BasicResponseDto,
   type LoginRequestDto,
   type LoginResponseDto,
   type SignUpRequestDto,
 } from '@repo/api';
-
 import { AuthService } from '@/features/auth/services/auth.service';
 import { ZodValidationPipe } from '@/core/pipes/zod-validation.pipe';
 import { signUpSchema } from '@/features/auth/schemas/sign-up.schema';
@@ -36,7 +44,14 @@ import {
   SESSION_ID_COOKIE_NAME,
 } from '@/constants/cookies.constant';
 import { RefreshTokenGuard } from '@/core/guards/refresh-token.guard';
+import {
+  SwaggerBasicResponseDto,
+  SwaggerLoginRequestDto,
+  SwaggerLoginResponseDto,
+  SwaggerSignUpRequestDto,
+} from '@/features/auth/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   private readonly isProduction: boolean;
@@ -51,6 +66,13 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('/register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({ type: SwaggerSignUpRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User registered',
+    type: SwaggerBasicResponseDto,
+  })
   @UsePipes(new ZodValidationPipe(signUpSchema))
   signUp(@Body() body: SignUpRequestDto): Promise<BasicResponseDto> {
     return this.authService.signUp(body);
@@ -58,6 +80,13 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('/login')
+  @ApiOperation({ summary: 'Login a user' })
+  @ApiBody({ type: SwaggerLoginRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User logged in',
+    type: SwaggerLoginResponseDto,
+  })
   @UsePipes(new ZodValidationPipe(loginSchema))
   async login(
     @Body() body: LoginRequestDto,
@@ -116,6 +145,15 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refreshed',
+    schema: {
+      example: { message: 'Token is refreshed successfully' },
+    },
+  })
   @UseGuards(RefreshTokenGuard, UserSessionGuard)
   @Post('/refresh')
   async refreshAccessToken(
@@ -152,6 +190,15 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'User logged out',
+    schema: {
+      example: { message: 'User logged out successfully' },
+    },
+  })
   @UseGuards(AuthGuard, RefreshTokenGuard, UserSessionGuard)
   @Post('/logout')
   async logout(
