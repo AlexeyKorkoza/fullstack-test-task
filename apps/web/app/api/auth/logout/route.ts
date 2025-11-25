@@ -7,12 +7,7 @@ import { deleteCookies } from '@/auth/services/auth.service';
 
 export async function POST(request: NextRequest) {
   try {
-    const externalResponse = await signOutUser();
-    if (!externalResponse.ok) {
-      throw new Error('Failed to sign out');
-    }
-
-    const data = await externalResponse.json();
+    const data = await signOutUser();
     await deleteCookies();
 
     return NextResponse.json(data, { status: 200 });

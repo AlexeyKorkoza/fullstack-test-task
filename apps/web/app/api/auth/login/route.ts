@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import setCookie from 'set-cookie-parser';
+import { type KyResponse } from 'ky';
 
 import { deleteCookies, setCookies } from '@/auth/services/auth.service';
+import { type LoginResponseDto } from '@repo/api';
 import { signInUser } from '@/auth/api';
-import { KyResponse } from 'ky';
 
 export async function POST(request: NextRequest) {
   try {
     await deleteCookies();
 
     const body = await request.json();
-    const externalResponse: KyResponse<any> = await signInUser(body);
+    const externalResponse: KyResponse<LoginResponseDto> =
+      await signInUser(body);
     // @ts-ignore
     const parsedCookies = setCookie.parse(externalResponse);
 
@@ -27,7 +29,6 @@ export async function POST(request: NextRequest) {
         const body = await error.response.json();
         errorMessage = body.message || body.error || 'Authentication failed';
       } catch {
-        // If JSON parsing fails, use default message
         errorMessage = 'Authentication failed';
       }
     }
