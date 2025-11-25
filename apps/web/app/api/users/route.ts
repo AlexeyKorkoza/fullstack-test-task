@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
         if (refreshError?.response?.json) {
           try {
             const body = await refreshError.response.json();
-            refreshErrorMessage = body.message || body.error || 'Authentication failed';
+            refreshErrorMessage =
+              body.message || body.error || 'Authentication failed';
           } catch {
             // If JSON parsing fails, use default message
             refreshErrorMessage = 'Authentication failed';
@@ -64,9 +65,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status },
-    );
+    return NextResponse.json({ error: errorMessage }, { status });
   }
 }

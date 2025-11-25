@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   EMAIL_INVALID_ERROR,
   MIN_PASSWORD_LENGTH,
-  PASSWORD_INVALID_ERROR
+  PASSWORD_INVALID_ERROR,
 } from '@/features/auth/constants/validation.constant';
 
 export const signUpSchema = z
@@ -14,6 +14,4 @@ export const signUpSchema = z
       error: PASSWORD_INVALID_ERROR(MIN_PASSWORD_LENGTH),
     }),
   })
-    .required();
-
-
+  .required();

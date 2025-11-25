@@ -26,7 +26,6 @@ This Turborepo includes the following packages & apps:
     ├── @repo/eslint-config       # `eslint` configurations (includes `prettier`)
     ├── @repo/jest-config         # `jest` configurations
     ├── @repo/typescript-config   # `tsconfig.json`s used throughout the monorepo
-    └── @repo/ui                  # Shareable stub React component library.
 ```
 
 Each package and application are mostly written in [TypeScript](https://www.typescriptlang.org/).
