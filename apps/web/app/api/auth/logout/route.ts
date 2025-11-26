@@ -4,6 +4,7 @@ import { signOutUser } from '@/auth/api';
 import { refreshAccessToken } from '@/core/cookies';
 import { retryRequest } from '@/core/api';
 import { deleteCookies } from '@/auth/services/auth.service';
+import { isApiError } from '@/core/api/helpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,8 +12,8 @@ export async function POST(request: NextRequest) {
     await deleteCookies();
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
-    if (error?.response?.status === 401) {
+  } catch (error: unknown) {
+    if (isApiError(error) && error.response?.status === 401) {
       try {
         await refreshAccessToken();
 
@@ -23,18 +24,22 @@ export async function POST(request: NextRequest) {
         const retryData = await retryResponse.json();
 
         return Response.json(retryData, { status: 200 });
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
         console.error('Logout failed:', refreshError);
 
-        const refreshStatus = refreshError?.response?.status || 401;
+        let refreshStatus = 401;
         let refreshErrorMessage = 'Logout failed';
 
-        if (refreshError?.response?.json) {
-          try {
-            const body = await refreshError.response.json();
-            refreshErrorMessage = body.message || body.error || 'Logout failed';
-          } catch {
-            refreshErrorMessage = 'Logout failed';
+        if (isApiError(refreshError)) {
+          refreshStatus = refreshError.response?.status ?? 401;
+          if (typeof refreshError.response?.json === 'function') {
+            try {
+              const body = await refreshError.response.json();
+              refreshErrorMessage =
+                body.message || body.error || 'Logout failed';
+            } catch {
+              refreshErrorMessage = 'Logout failed';
+            }
           }
         }
 
@@ -45,15 +50,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const status = error?.response?.status || 500;
+    let status = 500;
     let errorMessage = 'Logout failed';
 
-    if (error?.response?.json) {
-      try {
-        const body = await error.response.json();
-        errorMessage = body.message || body.error || 'Logout failed';
-      } catch {
-        errorMessage = 'Logout failed';
+    if (isApiError(error)) {
+      status = error.response?.status ?? 500;
+
+      if (typeof error.response?.json === 'function') {
+        try {
+          const body = await error.response.json();
+          errorMessage = body.message || body.error || 'Logout failed';
+        } catch {
+          errorMessage = 'Logout failed';
+        }
       }
     }
 

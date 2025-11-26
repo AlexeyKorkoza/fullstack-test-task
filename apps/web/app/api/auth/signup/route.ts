@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { signUpUser } from '@/auth/api';
+import { isApiError } from '@/core/api/helpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,16 +11,20 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, data });
 
     return response;
-  } catch (error: any) {
-    const status = error?.response?.status || 500;
+  } catch (error: unknown) {
+    let status = 500;
     let errorMessage = 'Registration failed';
 
-    if (error?.response?.json) {
-      try {
-        const body = await error.response.json();
-        errorMessage = body.message || body.error || 'Registration failed';
-      } catch {
-        errorMessage = 'Registration failed';
+    if (isApiError(error)) {
+      status = error.response?.status ?? 500;
+
+      if (typeof error.response?.json === 'function') {
+        try {
+          const body = await error.response.json();
+          errorMessage = body.message || body.error || 'Registration failed';
+        } catch {
+          errorMessage = 'Registration failed';
+        }
       }
     }
 
