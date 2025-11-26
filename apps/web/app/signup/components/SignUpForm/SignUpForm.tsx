@@ -9,6 +9,7 @@ import ky, { type KyResponse } from 'ky';
 import { ROUTERS } from '@/constants/router.constant';
 import { AuthForm } from '@/auth/components/AuthForm';
 import { type BasicResponseDto, type SignUpRequestDto } from '@repo/api';
+import { isApiError } from '@/core/api/helpers';
 import './SignUpForm.scss';
 
 export const SignUpForm = () => {
@@ -38,13 +39,16 @@ export const SignUpForm = () => {
         });
         router.push(ROUTERS.signin);
       } catch (error: unknown) {
-        const body = await error?.response?.json();
-        const { message } = body;
-        api.open({
-          message,
-          duration: 0,
-          type: 'error',
-        });
+        if (isApiError(error)) {
+          const body = await error?.response?.json();
+          const message = body?.error || 'An error occurred';
+
+          api.open({
+            message,
+            duration: 0,
+            type: 'error',
+          });
+        }
       }
     });
   };

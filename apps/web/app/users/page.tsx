@@ -7,9 +7,10 @@ import { DATE_FORMAT } from '@/constants/date-format.constant';
 import type {
   UserListItemInterface,
   UserListItemColumnInterface,
-} from 'app/users/interfaces';
+} from '@/users/interfaces';
 import { Table } from '@/shared/Table';
 import { ROUTERS } from '@/constants/router.constant';
+import { isApiError } from '@/core/api/helpers';
 
 export default async function UsersPage() {
   try {
@@ -34,15 +35,17 @@ export default async function UsersPage() {
         dataSource={finalUsers}
       />
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch users:', error);
 
-    if (error?.response?.status === 400) {
-      redirect(ROUTERS.signin);
-    }
+    if (isApiError(error)) {
+      if (error?.response?.status === 400) {
+        redirect(ROUTERS.signin);
+      }
 
-    if (error?.response?.status === 401) {
-      return <div>Please sign in to view users.</div>;
+      if (error?.response?.status === 401) {
+        return <div>Please sign in to view users.</div>;
+      }
     }
 
     return <div>Error loading users. Please try again.</div>;

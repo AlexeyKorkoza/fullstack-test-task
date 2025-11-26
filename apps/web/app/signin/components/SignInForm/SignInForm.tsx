@@ -10,6 +10,7 @@ import { ROUTERS } from '@/constants/router.constant';
 import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { AuthForm } from '@/auth/components/AuthForm';
 import { type LoginRequestDto, type LoginResponseDto } from '@repo/api';
+import { isApiError } from '@/core/api/helpers';
 import './SignInForm.scss';
 
 export const SignInForm = () => {
@@ -41,16 +42,16 @@ export const SignInForm = () => {
         router.refresh();
         router.push(ROUTERS.profile);
       } catch (error: unknown) {
-        const body =
-          error && typeof error === 'object' && 'response' in error
-            ? await (error as any).response?.json()
-            : null;
-        const message = body?.message || 'An error occurred';
-        api.open({
-          message,
-          duration: 0,
-          type: 'error',
-        });
+        if (isApiError(error)) {
+          const body = await error?.response?.json();
+          const message = body?.error || 'An error occurred';
+
+          api.open({
+            message,
+            duration: 0,
+            type: 'error',
+          });
+        }
       }
     });
   };

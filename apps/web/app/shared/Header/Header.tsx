@@ -13,6 +13,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { ROUTERS } from '@/constants/router.constant';
+import { isApiError } from '@/core/api/helpers';
 import './Header.scss';
 
 const { Header: AntHeader } = Layout;
@@ -53,16 +54,16 @@ export const Header: FC<Props> = ({ signOutApiAction }) => {
       setIsAuthenticated(false);
       router.push(ROUTERS.signin);
     } catch (error: unknown) {
-      const body =
-        error && typeof error === 'object' && 'response' in error
-          ? await (error as any).response?.json()
-          : null;
-      const message = body?.message || 'An error occurred';
-      api.open({
-        message,
-        duration: 0,
-        type: 'error',
-      });
+      if (isApiError(error)) {
+        const body = await error?.response?.json();
+        const message = body?.error || 'An error occurred';
+
+        api.open({
+          message,
+          duration: 0,
+          type: 'error',
+        });
+      }
     }
   };
 
