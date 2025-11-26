@@ -5,10 +5,10 @@ import { Form, Input } from 'antd';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import type { SignUpBodyDto } from 'app/signup/dto';
 import { FormErrorMessage } from '@/shared/FormErrorMessage';
-import { type AuthFormInterface } from 'app/auth/interfaces';
+import { type AuthFormInterface } from '@/auth/interfaces';
 import { authFormSchema } from '@/auth/schemas/auth-form.schema';
+import { type SignUpRequestDto } from '@repo/api';
 import './AuthForm.scss';
 
 type Props = {
@@ -45,7 +45,7 @@ export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
           name="email"
           control={control}
           render={({ field }) => (
-            <Form.Item<SignUpBodyDto> label="Email">
+            <Form.Item<SignUpRequestDto> label="Email">
               <Input {...field} disabled={isPending} />
               {errors.email?.message && (
                 <FormErrorMessage message={errors.email.message} />
@@ -58,7 +58,7 @@ export const AuthForm: FC<Props> = ({ onSubmitAction, footer, isPending }) => {
           name="password"
           control={control}
           render={({ field }) => (
-            <Form.Item<SignUpBodyDto> label="Password">
+            <Form.Item<SignUpRequestDto> label="Password">
               <Input.Password {...field} disabled={isPending} />
               {errors.password?.message && (
                 <FormErrorMessage message={errors.password.message} />

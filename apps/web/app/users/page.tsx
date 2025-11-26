@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { redirect } from 'next/navigation';
 
 import { USERS_TABLE_COLUMNS } from '@/users/constants/users-table-columns.constant';
-import { fetchUsersFromApi } from 'app/users/api';
+import { fetchUsersFromApi } from '@/users/api';
 import { DATE_FORMAT } from '@/constants/date-format.constant';
 import type {
   UserListItemInterface,
