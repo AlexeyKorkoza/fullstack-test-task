@@ -14,12 +14,13 @@ import { useRouter, usePathname } from 'next/navigation';
 import { IS_AUTHENTICATED } from '@/constants/local-storage-keys.constant';
 import { ROUTERS } from '@/constants/router.constant';
 import { isApiError } from '@/core/api/helpers';
+import { type BasicResponseDto } from '@repo/api';
 import './Header.scss';
 
 const { Header: AntHeader } = Layout;
 
 type Props = {
-  signOutApiAction: () => Promise<any>;
+  signOutApiAction: () => Promise<BasicResponseDto>;
 };
 
 export const Header: FC<Props> = ({ signOutApiAction }) => {

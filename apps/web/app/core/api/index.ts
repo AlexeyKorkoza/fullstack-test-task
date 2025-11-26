@@ -38,7 +38,7 @@ export const createApiClient = (): KyInstance => {
           options: NormalizedOptions,
           response: KyResponse,
           state: AfterResponseState,
-        ): Promise<any> => {
+        ): Promise<void | never> => {
           if (response.status === 401 && state.retryCount === 0) {
             throw {
               response,
