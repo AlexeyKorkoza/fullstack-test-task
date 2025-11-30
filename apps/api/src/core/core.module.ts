@@ -10,6 +10,7 @@ import { TokenService } from '@/core/services/token.service';
 import { UserSessionService } from '@/core/services/user-session.service';
 import { EmailService } from '@/core/services/email.service';
 import { SesService } from '@/core/services/ses.service';
+import { LogService } from '@/core/services/log.service';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SesService } from '@/core/services/ses.service';
     },
     EmailService,
     JwtService,
+    LogService,
     PrismaService,
     PasswordService,
     SesService,
@@ -51,6 +53,7 @@ import { SesService } from '@/core/services/ses.service';
     'REDIS_CLIENT',
     EmailService,
     JwtService,
+    LogService,
     PrismaService,
     PasswordService,
     TokenService,

@@ -4,6 +4,7 @@ import { Queue } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 
 import { type SignUpRequestDto } from '@repo/api';
+import { LogService } from '@/core/services/log.service';
 
 @Injectable()
 export class EmailService {
@@ -12,12 +13,18 @@ export class EmailService {
   constructor(
     @InjectQueue('email') private readonly emailQueue: Queue,
     private readonly configService: ConfigService,
+    private readonly logService: LogService,
   ) {
     this.verifiedEmail = this.configService.get<string>('aws.verifiedEmail');
   }
 
   async sendWelcomeEmail(data: SignUpRequestDto): Promise<void> {
     if (!this.verifiedEmail) {
+      this.logService.sendLog({
+        endpoint: '/auth/register',
+        message: 'Verified email is not set',
+        type: 'error',
+      });
       throw new Error('Verified email is not set');
     }
 

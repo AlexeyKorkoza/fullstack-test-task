@@ -30,6 +30,7 @@ import {
   SESSION_ID_COOKIE_NAME,
 } from '@/constants/cookies.constant';
 import { EmailService } from '@/core/services/email.service';
+import { LogService } from '@/core/services/log.service';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +38,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly logService: LogService,
     private readonly passwordService: PasswordService,
     private readonly refreshTokenService: RefreshTokenService,
     private readonly tokenService: TokenService,
@@ -95,6 +97,14 @@ export class AuthService {
       const { email, password } = body;
       const user = await this.authRepository.findUser(email);
       if (user) {
+        this.logService.sendLog({
+          data: {
+            user,
+          },
+          endpoint: '/auth/register',
+          message: 'User already exists',
+          type: 'error',
+        });
         throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
       }
 
@@ -105,6 +115,12 @@ export class AuthService {
       });
 
       await this.emailService.sendWelcomeEmail(body);
+
+      this.logService.sendLog({
+        endpoint: '/auth/register',
+        message: 'User created successfully',
+        type: 'success',
+      });
 
       return { message: 'User created successfully' };
     } catch (error) {
@@ -127,6 +143,14 @@ export class AuthService {
 
       const user = await this.authRepository.findUser(email);
       if (!user) {
+        this.logService.sendLog({
+          data: {
+            user,
+          },
+          endpoint: '/auth/login',
+          message: 'Invalid credentials',
+          type: 'error',
+        });
         throw new UnauthorizedException('Invalid credentials');
       }
 
@@ -136,6 +160,14 @@ export class AuthService {
         user.password,
       );
       if (!isPasswordValid) {
+        this.logService.sendLog({
+          data: {
+            user,
+          },
+          endpoint: '/auth/login',
+          message: 'Invalid credentials',
+          type: 'error',
+        });
         throw new UnauthorizedException('Invalid credentials');
       }
 
@@ -143,6 +175,14 @@ export class AuthService {
         id: userId,
       });
       if (!refreshToken) {
+        this.logService.sendLog({
+          data: {
+            user,
+          },
+          endpoint: '/auth/login',
+          message: 'Something went wrong when creating refresh token',
+          type: 'error',
+        });
         throw new HttpException(
           'Something went wrong when creating refresh token',
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -157,6 +197,14 @@ export class AuthService {
           email: user.email,
         });
       if (!accessToken) {
+        this.logService.sendLog({
+          data: {
+            user,
+          },
+          endpoint: '/auth/login',
+          message: 'Something went wrong when creating access token',
+          type: 'error',
+        });
         throw new HttpException(
           'Something went wrong when creating access token',
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -197,6 +245,14 @@ export class AuthService {
         { refreshToken, userId },
       );
       if (!foundRefreshToken) {
+        this.logService.sendLog({
+          data: {
+            sessionId,
+          },
+          endpoint: '/auth/refresh',
+          message: 'Refresh token not found',
+          type: 'error',
+        });
         throw new NotFoundException('Refresh token not found');
       }
 
@@ -205,6 +261,14 @@ export class AuthService {
 
       const isRefreshTokenExpired = isBefore(expiresAtDate, currentDate);
       if (isRefreshTokenExpired) {
+        this.logService.sendLog({
+          data: {
+            sessionId,
+          },
+          endpoint: '/auth/refresh',
+          message: 'Refresh token expired',
+          type: 'error',
+        });
         throw new HttpException(
           'Refresh token expired',
           HttpStatus.BAD_REQUEST,
@@ -247,6 +311,14 @@ export class AuthService {
         { refreshToken, userId },
       );
       if (!foundRefreshToken) {
+        this.logService.sendLog({
+          data: {
+            sessionId,
+          },
+          endpoint: '/auth/logout',
+          message: 'Refresh token not found',
+          type: 'error',
+        });
         throw new NotFoundException('Refresh token not found');
       }
 

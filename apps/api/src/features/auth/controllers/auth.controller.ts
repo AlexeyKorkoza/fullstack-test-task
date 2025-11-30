@@ -50,6 +50,7 @@ import {
   SwaggerLoginResponseDto,
   SwaggerSignUpRequestDto,
 } from '@/features/auth/swagger';
+import { LogService } from '@/core/services/log.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -58,6 +59,7 @@ export class AuthController {
 
   constructor(
     private readonly configService: ConfigService,
+    private readonly logService: LogService,
     private readonly authService: AuthService,
     private readonly userSessionService: UserSessionService,
   ) {
@@ -109,6 +111,7 @@ export class AuthController {
         generatedExistedSessionId,
       );
 
+    const userData = { id: userId, email, createdAt };
     if (existingSessionId) {
       this.authService.setCookiesInSignIn({
         accessToken,
@@ -118,8 +121,17 @@ export class AuthController {
         sessionId: generatedExistedSessionId.split(':').at(1),
       });
 
+      this.logService.sendLog({
+        data: {
+          user: userData,
+        },
+        endpoint: '/auth/login',
+        message: 'Already logged in from this device',
+        type: 'success',
+      });
+
       return {
-        user: { id: userId, email, createdAt },
+        user: userData,
         message: 'Already logged in from this device',
       };
     }
@@ -138,9 +150,18 @@ export class AuthController {
       sessionId,
     });
 
+    this.logService.sendLog({
+      data: {
+        user: userData,
+      },
+      endpoint: '/auth/login',
+      message: 'User logged in successfully',
+      type: 'success',
+    });
+
     return {
       message: 'User logged in successfully',
-      user: { id: userId, email, createdAt },
+      user: userData,
     };
   }
 
@@ -166,6 +187,11 @@ export class AuthController {
   ) {
     const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME];
     if (!refreshToken) {
+      this.logService.sendLog({
+        endpoint: '/auth/refresh',
+        message: 'Refresh token not found',
+        type: 'error',
+      });
       throw new UnauthorizedException('Refresh token not found');
     }
 
@@ -182,6 +208,15 @@ export class AuthController {
       secure: this.isProduction,
       maxAge: accessTokenExpiresIn,
       sameSite: 'none',
+    });
+
+    this.logService.sendLog({
+      data: {
+        sessionId,
+      },
+      endpoint: '/auth/refresh',
+      message: 'Token is refreshed successfully',
+      type: 'success',
     });
 
     return {
@@ -213,11 +248,21 @@ export class AuthController {
   ) {
     const sessionId = request.sessionId;
     if (!sessionId) {
+      this.logService.sendLog({
+        endpoint: '/auth/logout',
+        message: 'Session not found',
+        type: 'error',
+      });
       throw new UnauthorizedException('Session not found');
     }
 
     const refreshToken = request.refreshToken;
     if (!refreshToken) {
+      this.logService.sendLog({
+        endpoint: '/auth/logout',
+        message: 'Refresh token not found',
+        type: 'error',
+      });
       throw new UnauthorizedException('Refresh token not found');
     }
 
@@ -227,6 +272,12 @@ export class AuthController {
     response.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
     response.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
     response.clearCookie(SESSION_ID_COOKIE_NAME);
+
+    this.logService.sendLog({
+      endpoint: '/auth/refresh',
+      message: 'Token is refreshed successfully',
+      type: 'success',
+    });
 
     return { message: 'User logged out successfully' };
   }
