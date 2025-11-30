@@ -29,4 +29,8 @@ export default () => ({
     prefix: process.env.USER_SESSION_PREFIX || 'session',
     ttl: parseInt(process.env.USER_SESSION_TTL_IN_SECONDS || '86400', 10),
   },
+  aws: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    verifiedEmail: process.env.AWS_SES_VERIFIED_EMAIL,
+  },
 });

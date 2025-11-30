@@ -9,12 +9,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { type Response } from 'express';
 import { isBefore } from 'date-fns';
+
 import {
   type BasicResponseDto,
   type LoginRequestDto,
   type SignUpRequestDto,
 } from '@repo/api';
-
 import { AuthRepository } from '@/features/auth/repositories/auth.repository';
 import { TokenService } from '@/core/services/token.service';
 import { PasswordService } from '@/features/auth/services/password.service';
@@ -29,15 +29,17 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
 } from '@/constants/cookies.constant';
+import { EmailService } from '@/core/services/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly configService: ConfigService,
     private readonly authRepository: AuthRepository,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
     private readonly passwordService: PasswordService,
-    private readonly tokenService: TokenService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly tokenService: TokenService,
     private readonly userSessionService: UserSessionService,
   ) {}
 
@@ -101,6 +103,8 @@ export class AuthService {
         email,
         password: hashedPassword,
       });
+
+      await this.emailService.sendWelcomeEmail(body);
 
       return { message: 'User created successfully' };
     } catch (error) {
