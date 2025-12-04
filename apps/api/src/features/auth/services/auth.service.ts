@@ -13,6 +13,7 @@ import { isBefore } from 'date-fns';
 import {
   type BasicResponseDto,
   type LoginRequestDto,
+  SendLogTypeEnum,
   type SignUpRequestDto,
 } from '@repo/api';
 import { AuthRepository } from '@/features/auth/repositories/auth.repository';
@@ -20,8 +21,8 @@ import { TokenService } from '@/core/services/token.service';
 import { PasswordService } from '@/features/auth/services/password.service';
 import { RefreshTokenService } from '@/features/auth/services/refresh-token.service';
 import {
-  type AuthLoginResponse,
   type AccessTokenPayload,
+  type AuthLoginResponse,
 } from '@/features/auth/interfaces';
 import { UserSessionService } from '@/core/services/user-session.service';
 import {
@@ -103,7 +104,7 @@ export class AuthService {
           },
           endpoint: '/auth/register',
           message: 'User already exists',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
       }
@@ -119,7 +120,7 @@ export class AuthService {
       this.logService.sendLog({
         endpoint: '/auth/register',
         message: 'User created successfully',
-        type: 'success',
+        type: SendLogTypeEnum.success,
       });
 
       return { message: 'User created successfully' };
@@ -149,7 +150,7 @@ export class AuthService {
           },
           endpoint: '/auth/login',
           message: 'Invalid credentials',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -166,7 +167,7 @@ export class AuthService {
           },
           endpoint: '/auth/login',
           message: 'Invalid credentials',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -181,7 +182,7 @@ export class AuthService {
           },
           endpoint: '/auth/login',
           message: 'Something went wrong when creating refresh token',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new HttpException(
           'Something went wrong when creating refresh token',
@@ -203,7 +204,7 @@ export class AuthService {
           },
           endpoint: '/auth/login',
           message: 'Something went wrong when creating access token',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new HttpException(
           'Something went wrong when creating access token',
@@ -251,7 +252,7 @@ export class AuthService {
           },
           endpoint: '/auth/refresh',
           message: 'Refresh token not found',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new NotFoundException('Refresh token not found');
       }
@@ -267,7 +268,7 @@ export class AuthService {
           },
           endpoint: '/auth/refresh',
           message: 'Refresh token expired',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new HttpException(
           'Refresh token expired',
@@ -317,7 +318,7 @@ export class AuthService {
           },
           endpoint: '/auth/logout',
           message: 'Refresh token not found',
-          type: 'error',
+          type: SendLogTypeEnum.error,
         });
         throw new NotFoundException('Refresh token not found');
       }

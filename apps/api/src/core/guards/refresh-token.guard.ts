@@ -7,6 +7,7 @@ import {
 
 import { REFRESH_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
 import { LogService } from '@/core/services/log.service';
+import { SendLogTypeEnum } from '@repo/api';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
@@ -19,7 +20,7 @@ export class RefreshTokenGuard implements CanActivate {
     if (!refreshToken) {
       this.logService.sendLog({
         message: 'No refresh token',
-        type: 'success',
+        type: SendLogTypeEnum.success,
       });
       throw new UnauthorizedException('No refresh token');
     }

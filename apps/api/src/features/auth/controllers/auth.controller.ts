@@ -1,30 +1,31 @@
 import {
   Body,
   Controller,
-  Post,
-  UsePipes,
-  HttpStatus,
   HttpCode,
-  UseGuards,
+  HttpStatus,
+  Post,
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import {
-  ApiTags,
+  ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiResponse,
-  ApiBody,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
 
-import { type Response, type Request } from 'express';
+import { type Request, type Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 
 import {
   type BasicResponseDto,
   type LoginRequestDto,
   type LoginResponseDto,
+  SendLogTypeEnum,
   type SignUpRequestDto,
 } from '@repo/api';
 import { AuthService } from '@/features/auth/services/auth.service';
@@ -127,7 +128,7 @@ export class AuthController {
         },
         endpoint: '/auth/login',
         message: 'Already logged in from this device',
-        type: 'success',
+        type: SendLogTypeEnum.success,
       });
 
       return {
@@ -156,7 +157,7 @@ export class AuthController {
       },
       endpoint: '/auth/login',
       message: 'User logged in successfully',
-      type: 'success',
+      type: SendLogTypeEnum.success,
     });
 
     return {
@@ -190,7 +191,7 @@ export class AuthController {
       this.logService.sendLog({
         endpoint: '/auth/refresh',
         message: 'Refresh token not found',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
       throw new UnauthorizedException('Refresh token not found');
     }
@@ -216,7 +217,7 @@ export class AuthController {
       },
       endpoint: '/auth/refresh',
       message: 'Token is refreshed successfully',
-      type: 'success',
+      type: SendLogTypeEnum.success,
     });
 
     return {
@@ -251,7 +252,7 @@ export class AuthController {
       this.logService.sendLog({
         endpoint: '/auth/logout',
         message: 'Session not found',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
       throw new UnauthorizedException('Session not found');
     }
@@ -261,7 +262,7 @@ export class AuthController {
       this.logService.sendLog({
         endpoint: '/auth/logout',
         message: 'Refresh token not found',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
       throw new UnauthorizedException('Refresh token not found');
     }
@@ -276,7 +277,7 @@ export class AuthController {
     this.logService.sendLog({
       endpoint: '/auth/refresh',
       message: 'Token is refreshed successfully',
-      type: 'success',
+      type: SendLogTypeEnum.success,
     });
 
     return { message: 'User logged out successfully' };

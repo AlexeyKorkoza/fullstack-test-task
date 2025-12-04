@@ -13,3 +13,5 @@ export {
   type UserListResponseDto,
 } from './user/dtos';
 export { type UserEntity } from './user/entities';
+
+export * from './log/dtos';

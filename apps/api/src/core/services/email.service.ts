@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 
-import { type SignUpRequestDto } from '@repo/api';
+import { SendLogTypeEnum, type SignUpRequestDto } from '@repo/api';
 import { LogService } from '@/core/services/log.service';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class EmailService {
       this.logService.sendLog({
         endpoint: '/auth/register',
         message: 'Verified email is not set',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
       throw new Error('Verified email is not set');
     }

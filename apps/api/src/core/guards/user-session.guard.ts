@@ -8,6 +8,7 @@ import {
 import { UserSessionService } from '@/core/services/user-session.service';
 import { SESSION_ID_COOKIE_NAME } from '@/constants/cookies.constant';
 import { LogService } from '@/core/services/log.service';
+import { SendLogTypeEnum } from '@repo/api';
 
 @Injectable()
 export class UserSessionGuard implements CanActivate {
@@ -22,7 +23,7 @@ export class UserSessionGuard implements CanActivate {
     if (!sessionId) {
       this.logService.sendLog({
         message: 'Session required',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
 
       throw new UnauthorizedException('Session required');
@@ -32,7 +33,7 @@ export class UserSessionGuard implements CanActivate {
     if (!session) {
       this.logService.sendLog({
         message: 'Invalid session',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
       throw new UnauthorizedException('Invalid session');
     }

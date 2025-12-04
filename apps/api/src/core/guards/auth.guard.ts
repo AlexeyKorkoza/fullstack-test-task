@@ -9,6 +9,7 @@ import { TokenService } from '@/core/services/token.service';
 import { ACCESS_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
 import { type AccessTokenPayload } from '@/features/auth/interfaces';
 import { LogService } from '@/core/services/log.service';
+import { SendLogTypeEnum } from '@repo/api';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -24,7 +25,7 @@ export class AuthGuard implements CanActivate {
     if (!accessToken) {
       this.logService.sendLog({
         message: 'No access token',
-        type: 'error',
+        type: SendLogTypeEnum.error,
       });
 
       throw new UnauthorizedException('No access token');

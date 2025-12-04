@@ -33,4 +33,7 @@ export default () => ({
     region: process.env.AWS_REGION || 'us-east-1',
     verifiedEmail: process.env.AWS_SES_VERIFIED_EMAIL,
   },
+  rabbitmq: {
+    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+  },
 });
