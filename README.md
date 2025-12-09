@@ -1,15 +1,3 @@
-# Turborepo starter
-
-This is a community-maintained example. If you experience a problem, please submit a pull request with a fix. GitHub Issues will be closed.
-
-## Using this example
-
-Run the following command:
-
-```bash
-npx create-turbo@latest -e with-nestjs
-```
-
 ## What's inside?
 
 This Turborepo includes the following packages & apps:
@@ -21,6 +9,7 @@ This Turborepo includes the following packages & apps:
 ├── apps
 │   ├── api                       # NestJS app (https://nestjs.com).
 │   └── web                       # Next.js app (https://nextjs.org).
+│   └── log                       # NestJS app (https://nestjs.com).
 └── packages
     ├── @repo/api                 # Shared `NestJS` resources.
     ├── @repo/eslint-config       # `eslint` configurations (includes `prettier`)
@@ -37,7 +26,7 @@ This `Turborepo` has some additional tools already set for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type-safety
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
-- [Jest](https://prettier.io) & [Playwright](https://playwright.dev/) for testing
+- [Jest](https://prettier.io) for testing
 
 ### Commands
 
