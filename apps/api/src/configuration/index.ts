@@ -1,6 +1,6 @@
 export default () => ({
   port: parseInt(process.env.PORT || '3000', 10),
-  databaseUrl: process.env.DATABASE_URL,
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/fullstack_test_task?schema=SCHEMA',
   apiPrefix: process.env.API_PREFIX || 'api',
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
   accessToken: {
