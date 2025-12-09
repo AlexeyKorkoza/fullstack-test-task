@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const configService = new ConfigService();
-  const rabbitMQUrl = configService.get<string>('rabbitmq.url');
+  const rabbitMQUrl = configService.get<string>('RABBITMQ_URL');
 
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
@@ -14,6 +14,10 @@ async function bootstrap() {
       transport: Transport.RMQ,
       options: {
         urls: [rabbitMQUrl],
+        queue: 'logs_queue',
+        queueOptions: {
+          durable: true,
+        },
       },
     },
   );

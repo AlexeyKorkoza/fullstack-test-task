@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { type Connection } from 'mongoose';
@@ -9,13 +9,14 @@ import configuration from '@/configuration';
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
+      isGlobal: true,
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('mongodbUri'),
         onConnectionCreate: (connection: Connection) => {
-          connection.on('connected', () => console.log('MongoDB is connected'));
+          connection.on('connected', () => Logger.log('MongoDB is connected'));
 
           return connection;
         },
