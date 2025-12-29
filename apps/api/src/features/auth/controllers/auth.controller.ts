@@ -34,16 +34,12 @@ import { signUpSchema } from '@/features/auth/schemas/sign-up.schema';
 import { loginSchema } from '@/features/auth/schemas/login.schema';
 import { AuthGuard } from '@/core/guards/auth.guard';
 import { UserSessionService } from '@/core/services/user-session.service';
-import {
-  type AccessTokenPayload,
-  type UserSession,
-} from '@/features/auth/interfaces';
 import { UserSessionGuard } from '@/core/guards/user-session.guard';
 import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
-} from '@/constants/cookies.constant';
+} from '@/core/constants/cookies.constant';
 import { RefreshTokenGuard } from '@/core/guards/refresh-token.guard';
 import {
   SwaggerBasicResponseDto,
@@ -52,6 +48,9 @@ import {
   SwaggerSignUpRequestDto,
 } from '@/features/auth/swagger';
 import { LogService } from '@/core/services/log.service';
+import { SessionId } from '@/core/decorators/session-id.decorator';
+import { RefreshToken } from '@/core/decorators/refresh-token.decorator';
+import { type AppConfig } from '@/core/interfaces';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -59,7 +58,7 @@ export class AuthController {
   private readonly isProduction: boolean;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<AppConfig>,
     private readonly logService: LogService,
     private readonly authService: AuthService,
     private readonly userSessionService: UserSessionService,
@@ -179,14 +178,10 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard, UserSessionGuard)
   @Post('/refresh')
   async refreshAccessToken(
-    @Req()
-    request: Request & {
-      refreshToken: string;
-      sessionId: string;
-    },
+    @SessionId() sessionId: string,
+    @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME];
     if (!refreshToken) {
       this.logService.sendLog({
         endpoint: '/auth/refresh',
@@ -196,13 +191,12 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token not found');
     }
 
-    const sessionId = request.sessionId;
     const { accessToken } = await this.authService.refreshAccessToken({
       refreshToken,
       sessionId,
     });
     const accessTokenExpiresIn = this.configService.get<number>(
-      'accessToken.expiresIn',
+      'accessToken.expiresIn', { infer: true }
     );
     response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
       httpOnly: true,
@@ -238,16 +232,10 @@ export class AuthController {
   @UseGuards(AuthGuard, RefreshTokenGuard, UserSessionGuard)
   @Post('/logout')
   async logout(
-    @Req()
-    request: Request & {
-      refreshToken: string;
-      sessionId: string;
-      session: UserSession;
-      user: AccessTokenPayload;
-    },
+    @SessionId() sessionId: string,
+    @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const sessionId = request.sessionId;
     if (!sessionId) {
       this.logService.sendLog({
         endpoint: '/auth/logout',
@@ -257,7 +245,6 @@ export class AuthController {
       throw new UnauthorizedException('Session not found');
     }
 
-    const refreshToken = request.refreshToken;
     if (!refreshToken) {
       this.logService.sendLog({
         endpoint: '/auth/logout',

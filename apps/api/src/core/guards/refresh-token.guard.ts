@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { REFRESH_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
+import { REFRESH_TOKEN_COOKIE_NAME } from '@/core/constants/cookies.constant';
 import { LogService } from '@/core/services/log.service';
 import { SendLogTypeEnum } from '@repo/api';
 
@@ -20,7 +20,7 @@ export class RefreshTokenGuard implements CanActivate {
     if (!refreshToken) {
       this.logService.sendLog({
         message: 'No refresh token',
-        type: SendLogTypeEnum.success,
+        type: SendLogTypeEnum.error,
       });
       throw new UnauthorizedException('No refresh token');
     }

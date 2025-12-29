@@ -29,15 +29,16 @@ import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
   SESSION_ID_COOKIE_NAME,
-} from '@/constants/cookies.constant';
+} from '@/core/constants/cookies.constant';
 import { EmailService } from '@/core/services/email.service';
 import { LogService } from '@/core/services/log.service';
+import { type AppConfig } from '@/core/interfaces';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<AppConfig>,
     private readonly emailService: EmailService,
     private readonly logService: LogService,
     private readonly passwordService: PasswordService,
@@ -59,12 +60,12 @@ export class AuthService {
     response: Response;
     sessionId: string;
   }): void {
-    const userSessionTtl = this.configService.get<number>('userSession.ttl');
+    const userSessionTtl = this.configService.get<number>('userSession.ttl', { infer: true });
     const accessTokenExpiresIn = this.configService.get<number>(
-      'accessToken.expiresIn',
+      'accessToken.expiresIn', { infer: true }
     );
     const refreshTokenExpiresIn = this.configService.get<number>(
-      'refreshToken.expiresIn',
+      'refreshToken.expiresIn', { infer: true }
     );
 
     const commonCookieOptions = {

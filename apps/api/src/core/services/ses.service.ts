@@ -4,14 +4,16 @@ import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import { SendTemplatedEmailCommand, SESClient } from '@aws-sdk/client-ses';
 
+import { type AppConfig } from '@/core/interfaces';
+
 @Processor('email')
 @Injectable()
 export class SesService extends WorkerHost {
   sesClient: SESClient;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly configService: ConfigService<AppConfig>) {
     super();
-    const awsRegion = this.configService.get<string>('aws.region');
+    const awsRegion = this.configService.get<string>('aws.region', { infer: true });
     this.sesClient = new SESClient({ region: awsRegion });
   }
 

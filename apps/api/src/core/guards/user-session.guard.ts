@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { UserSessionService } from '@/core/services/user-session.service';
-import { SESSION_ID_COOKIE_NAME } from '@/constants/cookies.constant';
+import { SESSION_ID_COOKIE_NAME } from '@/core/constants/cookies.constant';
 import { LogService } from '@/core/services/log.service';
 import { SendLogTypeEnum } from '@repo/api';
 

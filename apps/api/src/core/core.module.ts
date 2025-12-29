@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleDestroy, Inject } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { type Redis } from 'ioredis';
 import { JwtService } from '@nestjs/jwt';
 import { BullModule } from '@nestjs/bullmq';
 
@@ -11,6 +11,9 @@ import { UserSessionService } from '@/core/services/user-session.service';
 import { EmailService } from '@/core/services/email.service';
 import { SesService } from '@/core/services/ses.service';
 import { LogService } from '@/core/services/log.service';
+import { RedisProvider, REDIS_CLIENT } from '@/core/providers/redis.provider';
+import { ValidationProvider } from '@/core/providers/validation.provider';
+import { type AppConfig } from '@/core/interfaces';
 
 @Module({
   imports: [
@@ -18,10 +21,10 @@ import { LogService } from '@/core/services/log.service';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService<AppConfig>) => ({
         connection: {
-          host: configService.get('redis.host'),
-          port: configService.get('redis.port'),
+          host: configService.get('redis.host', { infer: true }),
+          port: configService.get('redis.port', { infer: true }),
         },
       }),
     }),
@@ -30,16 +33,8 @@ import { LogService } from '@/core/services/log.service';
     }),
   ],
   providers: [
-    {
-      provide: 'REDIS_CLIENT',
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return new Redis({
-          port: configService.get('redis.port'),
-          host: configService.get('redis.host'),
-        });
-      },
-    },
+    ValidationProvider,
+    RedisProvider,
     EmailService,
     JwtService,
     LogService,
@@ -50,7 +45,7 @@ import { LogService } from '@/core/services/log.service';
     UserSessionService,
   ],
   exports: [
-    'REDIS_CLIENT',
+    REDIS_CLIENT,
     EmailService,
     JwtService,
     LogService,
@@ -60,4 +55,10 @@ import { LogService } from '@/core/services/log.service';
     UserSessionService,
   ],
 })
-export class CoreModule {}
+export class CoreModule implements OnModuleDestroy {
+  constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
+
+  async onModuleDestroy() {
+    await this.redis.quit();
+  }
+}

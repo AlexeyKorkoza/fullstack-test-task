@@ -7,13 +7,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import { type SendLogRequestDto } from '@repo/api';
+import { type AppConfig } from '@/core/interfaces';
 
 @Injectable()
 export class LogService {
   private client: ClientProxy;
 
-  constructor(private readonly configService: ConfigService) {
-    const rabbitMQUrl = configService.get<string>('rabbitmq.url');
+  constructor(private readonly configService: ConfigService<AppConfig>) {
+    const rabbitMQUrl = configService.get<string>('rabbitmq.url', { infer: true });
 
     this.client = ClientProxyFactory.create({
       transport: Transport.RMQ,

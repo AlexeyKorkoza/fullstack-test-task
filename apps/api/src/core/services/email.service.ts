@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { SendLogTypeEnum, type SignUpRequestDto } from '@repo/api';
 import { LogService } from '@/core/services/log.service';
+import { type AppConfig } from '@/core/interfaces';
 
 @Injectable()
 export class EmailService {
@@ -12,10 +13,10 @@ export class EmailService {
 
   constructor(
     @InjectQueue('email') private readonly emailQueue: Queue,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<AppConfig>,
     private readonly logService: LogService,
   ) {
-    this.verifiedEmail = this.configService.get<string>('aws.verifiedEmail');
+    this.verifiedEmail = this.configService.get<string>('aws.verifiedEmail', { infer: true });
   }
 
   async sendWelcomeEmail(data: SignUpRequestDto): Promise<void> {

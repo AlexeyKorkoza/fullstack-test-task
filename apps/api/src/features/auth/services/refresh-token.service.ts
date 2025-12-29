@@ -5,18 +5,19 @@ import * as bcrypt from 'bcrypt';
 import { TokenService } from '@/core/services/token.service';
 import { RefreshTokenRepository } from '@/features/auth/repositories/refresh-token.repository';
 import { type RefreshTokenEntity } from '@repo/api';
+import { type AppConfig } from '@/core/interfaces';
 
 @Injectable()
 export class RefreshTokenService {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<AppConfig>,
     private readonly tokenService: TokenService,
     private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   private hashRefreshToken(refreshToken: string): Promise<string> {
     const refreshTokenSaltRounds = this.configService.get<number>(
-      'refreshToken.saltRounds',
+      'refreshToken.saltRounds', { infer: true }
     );
 
     return bcrypt.hash(refreshToken, refreshTokenSaltRounds);
@@ -53,7 +54,7 @@ export class RefreshTokenService {
       id: userId,
     });
     const refreshTokenExpiresIn = this.configService.get<number>(
-      'refreshToken.expiresIn',
+      'refreshToken.expiresIn', { infer: true }
     );
 
     const token_hash = await this.hashRefreshToken(refresh_token);

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { TokenService } from '@/core/services/token.service';
-import { ACCESS_TOKEN_COOKIE_NAME } from '@/constants/cookies.constant';
+import { ACCESS_TOKEN_COOKIE_NAME } from '@/core/constants/cookies.constant';
 import { type AccessTokenPayload } from '@/features/auth/interfaces';
 import { LogService } from '@/core/services/log.service';
 import { SendLogTypeEnum } from '@repo/api';

@@ -1,5 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import type { Request } from 'express';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -11,11 +10,11 @@ import { type UserInfoResponseDto, type UserListResponseDto } from '@repo/api';
 import { UsersService } from '@/features/users/services/users.service';
 import { AuthGuard } from '@/core/guards/auth.guard';
 import { UserSessionGuard } from '@/core/guards/user-session.guard';
-import type { AccessTokenPayload } from '@/features/auth/interfaces';
 import {
   SwaggerUserListResponseDto,
   SwaggerUserInfoResponseDto,
 } from '@/features/users/swagger';
+import { SessionId } from '@/core/decorators/session-id.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -45,15 +44,7 @@ export class UsersController {
     type: SwaggerUserInfoResponseDto,
   })
   @UseGuards(AuthGuard, UserSessionGuard)
-  async findMe(
-    @Req()
-    request: Request & {
-      sessionId: string;
-      user: AccessTokenPayload;
-    },
-  ): Promise<UserInfoResponseDto> {
-    const sessionId = request.sessionId;
-
+  async findMe(@SessionId() sessionId: string): Promise<UserInfoResponseDto> {
     const user = await this.usersService.findInfoAboutMe(sessionId);
 
     return { user };
