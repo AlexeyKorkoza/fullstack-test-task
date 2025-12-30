@@ -12,7 +12,6 @@ import { EmailService } from '@/core/services/email.service';
 import { SesService } from '@/core/services/ses.service';
 import { LogService } from '@/core/services/log.service';
 import { RedisProvider, REDIS_CLIENT } from '@/core/providers/redis.provider';
-import { ValidationProvider } from '@/core/providers/validation.provider';
 import { type AppConfig } from '@/core/interfaces';
 
 @Module({
@@ -33,7 +32,6 @@ import { type AppConfig } from '@/core/interfaces';
     }),
   ],
   providers: [
-    ValidationProvider,
     RedisProvider,
     EmailService,
     JwtService,

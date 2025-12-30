@@ -5,13 +5,11 @@ import {
   PASSWORD_INVALID_ERROR,
 } from '@/features/auth/constants/validation.constant';
 
-export const signUpSchema = z
-  .object({
-    email: z.email({
-      error: EMAIL_INVALID_ERROR,
-    }),
-    password: z.string().min(MIN_PASSWORD_LENGTH, {
-      error: PASSWORD_INVALID_ERROR(MIN_PASSWORD_LENGTH),
-    }),
-  })
-  .required();
+export const signUpSchema = z.object({
+  email: z.email({
+    message: EMAIL_INVALID_ERROR,
+  }),
+  password: z.string().min(MIN_PASSWORD_LENGTH, {
+    message: PASSWORD_INVALID_ERROR(MIN_PASSWORD_LENGTH),
+  }),
+});
