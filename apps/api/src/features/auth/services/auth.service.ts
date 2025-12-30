@@ -99,10 +99,13 @@ export class AuthService {
       const { email, password } = body;
       const user = await this.authRepository.findUser(email);
       if (user) {
+        const data = {
+          email,
+          id: user.id,
+          createdAt: user.createdAt,
+        };
         this.logService.sendLog({
-          data: {
-            user,
-          },
+          data,
           endpoint: '/auth/register',
           message: 'User already exists',
           type: SendLogTypeEnum.error,
@@ -147,7 +150,7 @@ export class AuthService {
       if (!user) {
         this.logService.sendLog({
           data: {
-            user,
+            email,
           },
           endpoint: '/auth/login',
           message: 'Invalid credentials',
@@ -164,7 +167,9 @@ export class AuthService {
       if (!isPasswordValid) {
         this.logService.sendLog({
           data: {
-            user,
+            email,
+            id: user.id,
+            createdAt: user.createdAt,
           },
           endpoint: '/auth/login',
           message: 'Invalid credentials',
@@ -179,7 +184,9 @@ export class AuthService {
       if (!refreshToken) {
         this.logService.sendLog({
           data: {
-            user,
+            email,
+            id: user.id,
+            createdAt: user.createdAt,
           },
           endpoint: '/auth/login',
           message: 'Something went wrong when creating refresh token',
@@ -201,7 +208,9 @@ export class AuthService {
       if (!accessToken) {
         this.logService.sendLog({
           data: {
-            user,
+            email,
+            id: user.id,
+            createdAt: user.createdAt,
           },
           endpoint: '/auth/login',
           message: 'Something went wrong when creating access token',

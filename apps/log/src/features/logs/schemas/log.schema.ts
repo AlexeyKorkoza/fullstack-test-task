@@ -28,6 +28,9 @@ export class Log {
     ],
   })
   type: string;
+
+  @Prop({ default: Date.now() })
+  createdAt: Date;
 }
 
 export const LogSchema = SchemaFactory.createForClass(Log);

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/terminus';
 import { type Redis } from 'ioredis';
 
-import { REDIS_CLIENT } from '@/core/providers/redis.provider';
+import { REDIS_CLIENT } from '@/core/constants/symbols.constant';
 
 @Injectable()
 export class RedisHealthIndicator extends HealthIndicator {
@@ -39,7 +39,10 @@ export class RedisHealthIndicator extends HealthIndicator {
         responseTime: 'ok',
       });
     } catch (error: any) {
-      this.logger.error(`Redis health check failed: ${error?.message}`, error?.stack);
+      this.logger.error(
+        `Redis health check failed: ${error?.message}`,
+        error?.stack,
+      );
 
       const result = this.getStatus(key, false, {
         message: error?.message || 'Redis connection failed',
@@ -50,4 +53,3 @@ export class RedisHealthIndicator extends HealthIndicator {
     }
   }
 }
-

@@ -3,8 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 import { type AppConfig } from '@/core/interfaces';
-
-export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
+import { REDIS_CLIENT } from '@/core/constants/symbols.constant';
 
 export const RedisProvider: Provider = {
   provide: REDIS_CLIENT,
@@ -50,4 +49,3 @@ export const RedisProvider: Provider = {
     return redis;
   },
 };
-

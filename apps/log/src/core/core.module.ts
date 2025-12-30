@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { type Connection } from 'mongoose';
 
 import configuration from '@/configuration';
+import { type AppConfig } from '@/core/interfaces';
 
 @Module({
   imports: [
@@ -13,10 +14,20 @@ import configuration from '@/configuration';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService<AppConfig>) => ({
         uri: configService.get<string>('mongodbUri'),
         onConnectionCreate: (connection: Connection) => {
           connection.on('connected', () => Logger.log('MongoDB is connected'));
+          connection.on('open', () => Logger.log('MongoDB is open'));
+          connection.on('disconnected', () =>
+            Logger.log('MongoDB is disconnected'),
+          );
+          connection.on('reconnected', () =>
+            Logger.log('MongoDB is reconnected'),
+          );
+          connection.on('disconnecting', () =>
+            Logger.log('MongoDB is disconnecting'),
+          );
 
           return connection;
         },

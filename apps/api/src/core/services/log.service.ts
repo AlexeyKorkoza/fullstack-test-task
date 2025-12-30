@@ -1,32 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import {
-  ClientProxy,
-  ClientProxyFactory,
-  Transport,
-} from '@nestjs/microservices';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 
 import { type SendLogRequestDto } from '@repo/api';
-import { type AppConfig } from '@/core/interfaces';
+import { ROUTINE_KEYS } from '@/core/constants/routine-keys.constant';
+import { API_SERVICE } from '@/core/constants/symbols.constant';
 
 @Injectable()
 export class LogService {
-  private client: ClientProxy;
-
-  constructor(private readonly configService: ConfigService<AppConfig>) {
-    const rabbitMQUrl = configService.get<string>('rabbitmq.url', { infer: true });
-
-    this.client = ClientProxyFactory.create({
-      transport: Transport.RMQ,
-      options: {
-        urls: [rabbitMQUrl],
-        queue: 'logs_queue',
-        queueOptions: {
-          durable: true,
-        },
-      },
-    });
-  }
+  constructor(@Inject(API_SERVICE) private readonly client: ClientProxy) {}
 
   sendLog({
     endpoint = '',
@@ -40,7 +21,8 @@ export class LogService {
       message,
       type,
     };
+    const key = `${ROUTINE_KEYS.LOG.KEY}.${type}`;
 
-    this.client.emit('send_log', body);
+    this.client.emit(key, body);
   }
 }

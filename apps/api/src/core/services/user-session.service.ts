@@ -5,9 +5,9 @@ import crypto from 'crypto';
 
 import { type UserSession } from '@/features/auth/interfaces';
 import { type UserEntity } from '@repo/api';
-import { REDIS_CLIENT } from '@/core/providers/redis.provider';
 import { REDIS_KEYS } from '@/core/constants/redis-keys.constant';
 import { type AppConfig } from '@/core/interfaces';
+import { REDIS_CLIENT } from '@/core/constants/symbols.constant';
 
 @Injectable()
 export class UserSessionService {
@@ -19,8 +19,12 @@ export class UserSessionService {
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly configService: ConfigService<AppConfig>,
   ) {
-    this.sessionTtl = this.configService.get<number>('userSession.ttl', { infer: true });
-    this.sessionPrefix = this.configService.get<string>('userSession.prefix', { infer: true });
+    this.sessionTtl = this.configService.get<number>('userSession.ttl', {
+      infer: true,
+    });
+    this.sessionPrefix = this.configService.get<string>('userSession.prefix', {
+      infer: true,
+    });
   }
 
   async createSession({
